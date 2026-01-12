@@ -1,0 +1,20 @@
+# ROS 2 build artifacts
+build/
+install/
+log/
+
+# Local environment
+pudo-env/
+
+# Python artifacts
+__pycache__/
+*.pyc
+
+# IDE settings
+.vscode/
+.idea/
+
+# System files
+.DS_Store
+*.swp
+*~

@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="teknofesttunel">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>model://teknofesttunel/meshes/teknofesttunel.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>model://teknofesttunel/meshes/teknofesttunel.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <script>           
+            <uri>model://teknofesttunel/meshes/teknofesttunel.png</uri>
+          </script>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

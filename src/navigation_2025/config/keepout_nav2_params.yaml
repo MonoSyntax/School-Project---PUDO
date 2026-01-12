@@ -1,0 +1,426 @@
+amcl:
+  ros__parameters:
+    use_sim_time: True  # Simülasyon zamanı kullan
+    alpha1: 0.05  # Dönüş sırasında rotasyonel gürültü azaltıldı - robotun kendi etrafında dönerken belirsizlik
+    alpha2: 0.05  # Hareket sırasında rotasyonel gürültü azaltıldı - robotun ileri giderken yön belirsizliği
+    alpha3: 0.05  # Hareket sırasında translasyonel gürültü azaltıldı - robotun ileri giderken pozisyon belirsizliği
+    alpha4: 0.05  # Dönüş sırasında translasyonel gürültü azaltıldı - robotun dönerken pozisyon belirsizliği
+    alpha5: 0.02  # Araba benzeri hareket için yanal kayma gürültüsü azaltıldı - yan yöne kayma belirsizliği
+    base_frame_id: "base_footprint"  # URDF kök çerçevesi ile tutarlı - robotun ana referans çerçevesi
+    beam_skip_distance: 0.5  # Işın atlama mesafesi - hangi mesafede lazer ışınları atlanacak
+    beam_skip_error_threshold: 0.9  # Işın atlama hata eşiği - hata toleransı
+    beam_skip_threshold: 0.3  # Işın atlama eşiği - hangi ışınların atlanacağı
+    do_beamskip: false  # Işın atlama devre dışı - tüm lazer ışınları kullanılacak
+    global_frame_id: "map"  # Global harita çerçevesi - genel koordinat sistemi
+    lambda_short: 0.1  # Kısa mesafe parametresi - yakın engeller için ağırlık
+    laser_likelihood_max_dist: 2.0  # Lazer olabilirlik maksimum mesafe - lazer ölçümlerinin güvenilir olduğu max mesafe
+    laser_max_range: 30.0  # Lazer maksimum menzili - lazer sensörünün maksimum algılama mesafesi
+    laser_min_range: 0.1  # Lazer minimum menzili - lazer sensörünün minimum algılama mesafesi
+    laser_model_type: "likelihood_field"  # Lazer model tipi - olasılık alanı modeli kullan
+    max_beams: 120  # Daha iyi hassasiyet için artırıldı - kullanılacak maksimum lazer ışını sayısı
+    max_particles: 2000  # Daha iyi lokalizasyon için artırıldı - maksimum parçacık sayısı
+    min_particles: 500   # Minimum artırıldı - minimum parçacık sayısı
+    odom_frame_id: "odom"  # Odometri çerçeve kimliği - odometri koordinat sistemi
+    pf_err: 0.01  # Daha sıkı yakınsama için azaltıldı - parçacık filtresi hatası
+    pf_z: 0.99  # Parçacık filtresi z değeri - yeniden örnekleme için eşik
+    recovery_alpha_fast: 0.1   # Hızlı kurtarma etkinleştirildi - hızlı uyum parametresi
+    recovery_alpha_slow: 0.001 # Yavaş kurtarma etkinleştirildi - yavaş uyum parametresi
+    resample_interval: 1  # Yeniden örnekleme aralığı - kaç güncellemede bir parçacık yenileme
+    robot_model_type: "nav2_amcl::DifferentialMotionModel"  # Araba benzeri robotlar için daha iyi - hareket modeli
+    save_pose_rate: 0.5  # Poz kaydetme oranı - saniyede kaç kez poz kaydedilecek
+    sigma_hit: 0.1   # Sensör gürültüsü azaltıldı - lazer isabetlerindeki belirsizlik
+    tf_broadcast: true  # Transform yayını etkin - transform bilgilerini yayınla
+    transform_tolerance: 0.1  # Hassasiyet için çok daha sıkı tolerans - transform gecikmesi toleransı
+    update_min_a: 0.1   # Daha sık açısal güncellemeler - minimum açısal değişim eşiği
+    update_min_d: 0.1   # Daha sık mesafe güncellemeleri - minimum mesafe değişim eşiği
+    z_hit: 0.7     # Doğru okumalar için ağırlık artırıldı - doğru lazer okumasının ağırlığı
+    z_max: 0.05  # Maksimum menzil ağırlığı - menzil dışı ölçümler
+    z_rand: 0.2    # Rastgele gürültü azaltıldı - rastgele hatalı ölçüm ağırlığı
+    z_short: 0.05  # Kısa mesafe ağırlığı - beklenenden kısa ölçümler
+    scan_topic: scan  # Lazer tarama topic'i - lazer verilerinin geldiği kanal
+    set_initial_pose: True  # Başlangıç pozisyonu ayarla - ilk pozisyonu belirle
+    always_reset_initial_pose: False  # Her zaman başlangıç pozisyonunu sıfırlama - sürekli sıfırlama yapma
+    initial_pose:  # Başlangıç pozisyonu - robotun başlangıçta olacağı konum
+      x: 0.0  # X koordinatı
+      y: 0.0  # Y koordinatı
+      z: 0.0  # Z koordinatı (genellikle 0)
+      yaw: -1.4  # Yaw açısı - robotun başlangıç yönü
+
+bt_navigator:
+  ros__parameters:
+    use_sim_time: True  # Simülasyon zamanı kullan
+    global_frame: map  # Global koordinat çerçevesi - harita referansı
+    robot_base_frame: base_footprint  # Robot ana çerçevesi - robotun referans noktası
+    odom_topic: /odom  # Odometri topic'i - robot hızı ve pozisyon verilerinin geldiği kanal
+    bt_loop_duration: 10  # Davranış ağacı döngü süresi - saniyede kaç kez davranış ağacı çalıştırılacak
+    default_server_timeout: 20  # Varsayılan sunucu zaman aşımı - sunucu cevabı için maksimum bekleme süresi
+    default_bt_xml_filename: "$HOME/ros2_ws/src/navigation_2025/Behavior_tree.xml"  # Davranış ağacı dosyası
+    # 'default_nav_through_poses_bt_xml' ve 'default_nav_to_pose_bt_xml' varsayılanları kullanır:
+    # nav2_bt_navigator/navigate_to_pose_w_replanning_and_recovery.xml - tek hedefe gitme
+    # nav2_bt_navigator/navigate_through_poses_w_replanning_and_recovery.xml - çoklu hedefe gitme
+    # Bunlar burada ayarlanabilir veya ana launch dosyasından RewrittenYaml ile yeniden eşlenebilir
+    plugin_lib_names:  # Davranış ağacı eklenti kütüphaneleri - kullanılacak davranış modülleri
+    - nav2_compute_path_to_pose_action_bt_node  # Hedefe yol hesaplama
+    - nav2_compute_path_through_poses_action_bt_node  # Çoklu hedefe yol hesaplama
+    - nav2_smooth_path_action_bt_node  # Yol yumuşatma
+    - nav2_follow_path_action_bt_node  # Yol takip etme
+    - nav2_spin_action_bt_node  # Dönme hareketi
+    - nav2_wait_action_bt_node  # Bekleme hareketi
+    - nav2_assisted_teleop_action_bt_node  # Yardımlı uzaktan kumanda
+    - nav2_back_up_action_bt_node  # Geri gitme hareketi
+    - nav2_drive_on_heading_bt_node  # Belirli yönde ilerleme
+    - nav2_clear_costmap_service_bt_node  # Maliyet haritası temizleme
+    - nav2_is_stuck_condition_bt_node  # Sıkışma durumu kontrol
+    - nav2_goal_reached_condition_bt_node  # Hedefe ulaşma kontrol
+    - nav2_goal_updated_condition_bt_node  # Hedef güncelleme kontrol
+    - nav2_globally_updated_goal_condition_bt_node  # Global hedef güncelleme kontrol
+    - nav2_is_path_valid_condition_bt_node  # Yol geçerliliği kontrol
+    - nav2_initial_pose_received_condition_bt_node  # Başlangıç pozisyonu alma kontrol
+    - nav2_reinitialize_global_localization_service_bt_node  # Global lokalizasyon yeniden başlatma
+    - nav2_rate_controller_bt_node  # Oran kontrolörü
+    - nav2_distance_controller_bt_node  # Mesafe kontrolörü
+    - nav2_speed_controller_bt_node  # Hız kontrolörü
+    - nav2_truncate_path_action_bt_node  # Yol kırpma
+    - nav2_truncate_path_local_action_bt_node  # Yerel yol kırpma
+    - nav2_goal_updater_node_bt_node  # Hedef güncelleme düğümü
+    - nav2_recovery_node_bt_node  # Kurtarma düğümü
+    - nav2_pipeline_sequence_bt_node  # Ardışık işlem düğümü
+    - nav2_round_robin_node_bt_node  # Döngüsel seçim düğümü
+    - nav2_transform_available_condition_bt_node  # Transform mevcut durumu kontrol
+    - nav2_time_expired_condition_bt_node  # Zaman aşımı kontrol
+    - nav2_path_expiring_timer_condition  # Yol zaman aşımı kontrol
+    - nav2_distance_traveled_condition_bt_node  # Kat edilen mesafe kontrol
+    - nav2_single_trigger_bt_node  # Tek tetikleme düğümü
+    - nav2_goal_updated_controller_bt_node  # Hedef güncelleme kontrolörü
+    - nav2_is_battery_low_condition_bt_node  # Düşük batarya kontrol
+    - nav2_navigate_through_poses_action_bt_node  # Çoklu hedefe navigasyon
+    - nav2_navigate_to_pose_action_bt_node  # Tek hedefe navigasyon
+    - nav2_remove_passed_goals_action_bt_node  # Geçilen hedefleri kaldırma
+    - nav2_planner_selector_bt_node  # Planlayıcı seçici
+    - nav2_controller_selector_bt_node  # Kontrolör seçici
+    - nav2_goal_checker_selector_bt_node  # Hedef kontrol seçici
+    - nav2_controller_cancel_bt_node  # Kontrolör iptal etme
+    - nav2_path_longer_on_approach_bt_node  # Yaklaşırken yol uzatma
+    - nav2_wait_cancel_bt_node  # Bekleme iptal etme
+    - nav2_spin_cancel_bt_node  # Dönme iptal etme
+    - nav2_back_up_cancel_bt_node  # Geri gitme iptal etme
+    - nav2_assisted_teleop_cancel_bt_node  # Yardımlı kumanda iptal etme
+    - nav2_drive_on_heading_cancel_bt_node  # Yönde ilerleme iptal etme
+
+bt_navigator_navigate_through_poses_rclcpp_node:
+  ros__parameters:
+    use_sim_time: True  # Simülasyon zamanı kullan - çoklu hedef navigasyon düğümü
+
+bt_navigator_navigate_to_pose_rclcpp_node:
+  ros__parameters:
+    use_sim_time: True  # Simülasyon zamanı kullan - tek hedef navigasyon düğümü
+
+controller_server:
+  ros__parameters:
+    use_sim_time: True  # Simülasyon zamanı kullan
+    controller_frequency: 8.0  # Hesaplama yükünü azaltmak için daha da azaltıldı - kontrolör çalışma frekansı
+    min_x_velocity_threshold: 0.001  # Minimum X hız eşiği - ileri/geri minimum hız
+    min_y_velocity_threshold: 0.5  # Minimum Y hız eşiği - yanal minimum hız
+    min_theta_velocity_threshold: 0.001  # Minimum açısal hız eşiği - dönüş minimum hız
+    progress_checker_plugin: "progress_checker"  # İlerleme kontrol eklentisi
+    goal_checker_plugins: ["goal_checker"]  # Hedef kontrol eklentileri
+    controller_plugins: ["FollowPath"]  # Kontrolör eklentileri - kullanılacak kontrol algoritmaları
+    controller_server_timeout: 1.0  # Daha iyi performans için zaman aşımı artırıldı - komut zaman aşımı
+
+    progress_checker:  # İlerleme kontrol ayarları
+      plugin: "nav2_controller::SimpleProgressChecker"  # Basit ilerleme kontrol eklentisi
+      required_movement_radius: 0.5  # Gerekli hareket yarıçapı - robotun hareket ettiği kabul edilen minimum mesafe
+      movement_time_allowance: 10.0  # Hareket zaman toleransı - robot hareket etmezse kaç saniye beklenecek
+    goal_checker:  # Hedef kontrol ayarları
+      plugin: "nav2_controller::SimpleGoalChecker"  # Basit hedef kontrol eklentisi
+      xy_goal_tolerance: 0.25  # Hassasiyet için daha sıkı tolerans - hedefe ulaşma pozisyon toleransı
+      yaw_goal_tolerance: 0.25  # Yön hassasiyeti için daha sıkı tolerans - hedefe ulaşma açı toleransı
+      stateful: True  # Durumlu kontrol - hedef kontrol durumunu sakla
+    FollowPath:  # Yol takip kontrolör ayarları
+      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"  # Düzenlenmiş saf takip kontrolörü
+      desired_linear_vel: 1.2  # Daha hızlı hız
+      lookahead_dist: 1.5
+      min_lookahead_dist: 0.7
+      max_lookahead_dist: 2.5
+      lookahead_time: 1.5
+      rotate_to_heading_angular_vel: 1.2
+      transform_tolerance: 0.1
+      use_velocity_scaled_lookahead_dist: false
+      min_approach_linear_velocity: 0.25
+      approach_velocity_scaling_dist: 0.7
+      use_collision_detection: true  # Çarpışma algılama açıldı
+      max_allowed_time_to_collision_up_to_carrot: 1.0
+      use_regulated_linear_velocity_scaling: true
+      use_cost_regulated_linear_velocity_scaling: true
+      regulated_linear_scaling_min_radius: 0.7
+      regulated_linear_scaling_min_speed: 0.35
+      use_rotate_to_heading: true
+      rotate_to_heading_min_angle: 0.7
+      max_angular_accel: 3.0
+      max_robot_pose_search_dist: 6.0
+      use_interpolation: true
+      cost_scaling_dist: 0.7
+      cost_scaling_gain: 1.0
+      inflation_cost_scaling_factor: 3.0
+      allow_reversing: false
+      max_robot_pose_search_dist: 5.0  # Daha hızlı poz arama için 10'dan azaltıldı - robot poz arama mesafesi
+      use_interpolation: false  # Enterpolasyon kullanma - performans için kapatıldı
+      cost_scaling_dist: 1.0  # Maliyet ölçekleme mesafesi - engellere olan mesafe ölçekleme
+      cost_scaling_gain: 1.0  # Maliyet ölçekleme kazancı - maliyet etkisi çarpanı
+      inflation_cost_scaling_factor: 3.0  # Şişirme maliyet ölçekleme faktörü - engel etrafı güvenlik alanı
+      allow_reversing: true  # Geri gidişe izin ver - robot geri gidebilir
+
+controller_server_rclcpp_node:
+  ros__parameters:
+    use_sim_time: True  # Simülasyon zamanı kullan - kontrolör düğümü ayarları
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      use_sim_time: True  # Simülasyon zamanı kullan
+
+      update_frequency: 3.0  # Daha iyi performans için daha da azaltıldı - yerel maliyet haritası güncelleme frekansı
+      publish_frequency: 3.0  # Daha iyi performans için azaltıldı - yerel maliyet haritası yayın frekansı
+      global_frame: odom  # Global çerçeve - odometri koordinat sistemi
+      robot_base_frame: base_footprint  # Robot ana çerçevesi - robotun referans noktası
+
+      width: 40  # Daha iyi performans için azaltıldı - maliyet haritası genişliği (hücre sayısı)
+      height: 40  # Daha iyi performans için azaltıldı - maliyet haritası yüksekliği (hücre sayısı)
+      resolution: 0.05  # Çözünürlük - her hücrenin metre cinsinden boyutu
+      rolling_window: True  # Kaydırılabilir pencere - robot hareket ettikçe harita kaydırılır
+      always_send_full_costmap: True  # Her zaman tam maliyet haritasını gönder
+
+      # robot_radius: 0.23  # Robot yarıçapı - kullanılmıyor, footprint kullanılıyor
+      footprint: "[[-1.1, -0.6], [1.1, -0.6], [1.1, 0.6], [-1.1, 0.6]]"  # Daha küçük footprint
+      footprint_padding: 0.05  # Daha az padding
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      filters: ["keepout_filter", "inflation_layer"]
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        enabled: True
+        inflation_radius: 6.0  # Daha fazla güvenlik mesafesi
+        cost_scaling_factor: 7.0  # Maliyet ölçekleme faktörü - güvenlik alanı maliyeti çarpanı
+      obstacle_layer:  # Engel katmanı - sensörlerden gelen engel verileri
+        plugin: "nav2_costmap_2d::ObstacleLayer"  # Engel katmanı eklentisi
+        enabled: True  # Etkin - bu katmanı kullan
+        observation_sources: scan  # Gözlem kaynakları - hangi sensörler kullanılacak
+        scan:  # Lazer tarama ayarları
+          topic: /scan  # Lazer tarama topic'i - lazer verilerinin geldiği kanal
+          max_obstacle_height: 2.0  # Maksimum engel yüksekliği - bu yüksekliğin üstü engel sayılmaz
+          clearing: True  # Temizleme etkin - engeller kaybolunca haritadan kaldır
+          marking: True  # İşaretleme etkin - yeni engelleri haritaya ekle
+          data_type: "LaserScan"  # Veri tipi - lazer tarama verisi
+          raytrace_max_range: 2.5  # Performans için azaltıldı - ışın izleme maksimum menzili
+          raytrace_min_range: 0.0  # Işın izleme minimum menzili - en yakın algılama mesafesi
+          obstacle_max_range: 2.0  # Performans için azaltıldı - engel algılama maksimum menzili
+          obstacle_min_range: 0.0  # Engel algılama minimum menzili - en yakın engel mesafesi
+      static_layer:  # Statik katman - önceden bilinen harita
+        plugin: "nav2_costmap_2d::StaticLayer"  # Statik katman eklentisi
+        enabled: True  # Etkin - bu katmanı kullan
+        map_subscribe_transient_local: True  # Geçici yerel harita aboneliği - harita verilerini sakla
+      keepout_filter:  # Yasak alan filtresi - robotun girmemesi gereken alanlar
+        plugin: "nav2_costmap_2d::KeepoutFilter"  # Yasak alan filtresi eklentisi
+        enabled: True  # Etkin - bu filtreyi kullan
+        filter_info_topic: "/costmap_filter_info"  # Filtre bilgi topic'i - filtre verilerinin geldiği kanal
+      always_send_full_costmap: True  # Her zaman tam maliyet haritasını gönder - performans ayarı
+
+  local_costmap_client:
+    ros__parameters:
+      use_sim_time: True
+  local_costmap_rclcpp_node:
+    ros__parameters:
+      use_sim_time: True
+
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      use_sim_time: True  # Simülasyon zamanı kullan
+
+      update_frequency: 0.5  # Statik harita performansı için çok azaltıldı - global maliyet haritası güncelleme frekansı
+      publish_frequency: 0.5  # Global maliyet haritası yayın frekansı - düşük frekans çünkü statik harita
+      global_frame: map  # Global çerçeve - harita koordinat sistemi
+      robot_base_frame: base_footprint  # Robot ana çerçevesi - robotun referans noktası
+      resolution: 0.05  # Çözünürlük - her hücrenin metre cinsinden boyutu
+      always_send_full_costmap: True  # Her zaman tam maliyet haritasını gönder
+      track_unknown_space: True  # Bilinmeyen alanları takip et - haritada bilinmeyen yerleri işaretle
+
+      #robot_radius: 0.23  # Robot yarıçapı - kullanılmıyor, footprint kullanılıyor
+      footprint: "[[-1.1, -0.6], [1.1, -0.6], [1.1, 0.6], [-1.1, 0.6]]"  # Daha küçük footprint
+      footprint_padding: 0.05  # Daha az padding
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]  # Kullanılacak katmanlar
+      filters: ["keepout_filter", "inflation_layer"]  # Kullanılacak filtreler
+      inflation_layer:  # Şişirme katmanı - engeller etrafında güvenlik alanı
+        plugin: "nav2_costmap_2d::InflationLayer"  # Şişirme katmanı eklentisi
+        enabled: True  # Etkin - bu katmanı kullan
+        inflation_radius: 6.0  # Şişirme yarıçapı - engeller etrafında güvenlik alanı boyutu (global)
+        cost_scaling_factor: 7.0  # Maliyet ölçekleme faktörü - güvenlik alanı maliyeti çarpanı
+      obstacle_layer:  # Engel katmanı - sensörlerden gelen engel verileri
+        plugin: "nav2_costmap_2d::ObstacleLayer"  # Engel katmanı eklentisi
+        enabled: True  # Etkin - bu katmanı kullan
+        observation_sources: scan  # Gözlem kaynakları - hangi sensörler kullanılacak
+        scan:  # Lazer tarama ayarları
+          topic: /scan  # Lazer tarama topic'i - lazer verilerinin geldiği kanal
+          max_obstacle_height: 2.0  # Maksimum engel yüksekliği - bu yüksekliğin üstü engel sayılmaz
+          clearing: True  # Temizleme etkin - engeller kaybolunca haritadan kaldır
+          marking: True  # İşaretleme etkin - yeni engelleri haritaya ekle
+          data_type: "LaserScan"  # Veri tipi - lazer tarama verisi
+          raytrace_max_range: 3.0  # Işın izleme maksimum menzili - temizleme için maksimum mesafe
+          raytrace_min_range: 0.0  # Işın izleme minimum menzili - en yakın temizleme mesafesi
+          obstacle_max_range: 2.5  # Engel algılama maksimum menzili - engel işaretleme için maksimum mesafe
+          obstacle_min_range: 0.0  # Engel algılama minimum menzili - en yakın engel mesafesi
+      static_layer:  # Statik katman - önceden bilinen harita
+        plugin: "nav2_costmap_2d::StaticLayer"  # Statik katman eklentisi
+        enabled: True  # Etkin - bu katmanı kullan
+        map_subscribe_transient_local: True  # Geçici yerel harita aboneliği - harita verilerini sakla
+      keepout_filter:  # Yasak alan filtresi - robotun girmemesi gereken alanlar
+        plugin: "nav2_costmap_2d::KeepoutFilter"  # Yasak alan filtresi eklentisi
+        enabled: True  # Etkin - bu filtreyi kullan
+        filter_info_topic: "/costmap_filter_info"  # Filtre bilgi topic'i - filtre verilerinin geldiği kanal
+      always_send_full_costmap: True  # Her zaman tam maliyet haritasını gönder - performans ayarı
+
+  global_costmap_client:
+    ros__parameters:
+      use_sim_time: True  # Simülasyon zamanı kullan - global maliyet haritası istemci ayarları
+  global_costmap_rclcpp_node:
+    ros__parameters:
+      use_sim_time: True  # Simülasyon zamanı kullan - global maliyet haritası düğüm ayarları
+
+map_server:
+  ros__parameters:
+    use_sim_time: True  # Simülasyon zamanı kullan
+    # Launch tarafından "map" launch konfigürasyonu veya varsayılan değer ile geçersiz kılınır.
+    # Yaml'da kullanmak için tb3_simulation_launch.py dosyasındaki varsayılan "map" değerini kaldır ve aşağıya tam yolu ver.
+    yaml_filename: "$HOME/ros2_ws/src/navigation_2025/maps/teknofestObstacle.yaml"  # Harita dosyası yolu
+
+map_saver:
+  ros__parameters:
+    use_sim_time: True  # Simülasyon zamanı kullan
+    save_map_timeout: 5.0  # Harita kaydetme zaman aşımı - harita kaydetme için maksimum bekleme süresi
+    free_thresh_default: 0.25  # Varsayılan boş alan eşiği - hangi değerin altı boş alan sayılacak
+    occupied_thresh_default: 0.65  # Varsayılan dolu alan eşiği - hangi değerin üstü dolu alan sayılacak
+    map_subscribe_transient_local: True  # Geçici yerel harita aboneliği - harita verilerini sakla
+
+planner_server:
+  ros__parameters:
+    planner_plugins: ["GridBased"]  # Planlayıcı eklentileri - kullanılacak yol planlama algoritmaları
+    use_sim_time: True  # Simülasyon zamanı kullan
+
+    GridBased:  # Izgara tabanlı planlayıcı ayarları
+      plugin: "nav2_smac_planner/SmacPlannerHybrid"  # Hibrit SMAC planlayıcı eklentisi
+      tolerance: 0.5  # Tolerans - hedefe ulaşma hassasiyeti (varsayılan: 1.0)                     
+      downsample_costmap: true  # Maliyet haritası alt örnekleme - daha hızlı planlama (varsayılan: false)        
+      downsampling_factor: 2  # Daha iyi performans için artırıldı - alt örnekleme faktörü             
+      allow_unknown: false  # Yasaklı alanlar ve bilinmeyen alanlar engel olarak algılansın
+      max_iterations: 500000  # Daha iyi performans için azaltıldı - maksimum iterasyon sayısı       
+      max_on_approach_iterations: 500  # Daha iyi performans için azaltıldı - yaklaşım maksimum iterasyonu  
+      max_planning_time: 3.0  # Daha iyi performans için azaltıldı - maksimum planlama süresi           
+      motion_model_for_search: "REEDS_SHEPP"  # Arama için hareket modeli - Reeds-Shepp eğrileri    
+      cost_travel_multiplier: 2.0  # Maliyet seyahat çarpanı - yol maliyeti çarpanı        
+      angle_quantization_bins: 36  # Daha iyi performans için azaltıldı - açı kuantizasyon bölmeleri    
+      analytic_expansion_ratio: 3.5  # Analitik genişleme oranı - analitik çözüm kullanım oranı       
+      analytic_expansion_max_length: 3.0  # Analitik genişleme maksimum uzunluk - analitik çözüm maksimum mesafe    
+      minimum_turning_radius: 4.5  # Minimum dönüş yarıçapı - robotun minimum dönebileceği yarıçap       
+      reverse_penalty: 4.0  # Geri gitme cezası - geri gitme hareketine verilen maliyet cezası               
+      change_penalty: 0.3  # Değişim cezası - yön değiştirme maliyeti                 
+      non_straight_penalty: 1.3  # Düz olmayan hareket cezası - eğri yollar için maliyet cezası         
+      cost_penalty: 5.0  # Maliyet cezası - yüksek maliyetli alanlar için ceza                 
+      retrospective_penalty: 0.015  # Geriye dönük ceza - geçmiş kararları değiştirme maliyeti                    
+      lookup_table_size: 20.0  # Arama tablosu boyutu - hızlı arama için tablo boyutu
+      use_quadratic_cost_penalty: False  # Kuadratik maliyet cezası kullanma - maliyet cezasının karesi               
+      cache_obstacle_heuristic: False  # Engel buluşsal önbelleği - engel hesaplamalarını önbellekte sakla        
+      downsample_obstacle_heuristic: True  # Engel buluşsal alt örnekleme - engel hesaplamalarını hızlandır   
+      allow_primitive_interpolation: False  # İlkel enterpolasyona izin ver - ara değerleri hesapla
+      smooth_path: True  # Yol yumuşatma - planlanmış yolu yumuşat                   
+      smoother:  # Yumuşatıcı ayarları
+        max_iterations: 1000  # Maksimum iterasyon - yumuşatma için maksimum döngü sayısı
+        w_smooth: 0.3  # Yumuşatma ağırlığı - ne kadar yumuşak olacak
+        w_data: 0.2  # Veri ağırlığı - orijinal veriye ne kadar bağlı kalacak
+        tolerance: 1.0e-10  # Tolerans - yumuşatma hassasiyeti
+        do_refinement: False  # İyileştirme yapma - ek iyileştirme işlemi
+        refinement_num: 2  # İyileştirme sayısı - kaç kez iyileştirme yapılacak
+        
+smoother_server:
+  ros__parameters:
+    use_sim_time: True  # Simülasyon zamanı kullan
+    smoother_plugins: ["SmoothPath"]  # Yumuşatıcı eklentileri - kullanılacak yol yumuşatma algoritmaları
+
+    SmoothPath:  # Yol yumuşatma ayarları
+      plugin: "nav2_constrained_smoother/ConstrainedSmoother"  # Kısıtlı yumuşatıcı eklentisi
+      reversing_enabled: true  # Geri gitme algılama etkin - ileri/geri yön ve köşe algılaması. Yön atanmamış yollar için false yapılmalı
+      path_downsampling_factor: 2  # Daha iyi performans için artırıldı - yolun her n-inci noktası alınır
+      path_upsampling_factor: 1  # Yol yukarı örnekleme faktörü - 0: alt örnekli kalır, 1: kubik bezier ile orijinal ayrıntıya döner
+      keep_start_orientation: true  # Başlangıç yönünü koru - başlangıç yönünün yumuşatılmasını engelle
+      keep_goal_orientation: true  # Hedef yönünü koru - hedef yönünün yumuşatılmasını engelle
+      minimum_turning_radius: 4.5  # Minimum dönüş yarıçapı - robotun yapabileceği minimum dönüş yarıçapı
+      w_curve: 30.0  # Eğri ağırlığı - minimum dönüş yarıçapını zorlamak için ağırlık
+      w_dist: 0.0  # Mesafe ağırlığı - yolu orijinale bağlamak için ağırlık
+      w_smooth: 2000000.0  # Yumuşatma ağırlığı - yolun yumuşaklığını maksimize etmek için ağırlık
+      w_cost: 0.015  # Maliyet ağırlığı - robotu çarpışma ve maliyetten uzaklaştırmak için ağırlık
+
+      w_cost_cusp_multiplier: 3.0  # Maliyet köşe çarpanı - köşelerde maliyet artışı  
+      cusp_zone_length: 2.5  # Köşe bölgesi uzunluğu - köşe etkisinin olduğu mesafe        
+
+      optimizer:  # Optimizer ayarları
+        max_iterations: 50  # Daha iyi performans için azaltıldı - maksimum optimizasyon iterasyonu        
+        debug_optimizer: false  # Optimizer hata ayıklama - hata ayıklama bilgilerini göster       
+        gradient_tol: 1e-8  # Daha iyi performans için gevşetildi - gradyan toleransı
+        fn_tol: 1.0e-6  # Daha iyi performans için gevşetildi - fonksiyon toleransı    
+        param_tol: 1.0e-12  # Daha iyi performans için gevşetildi - parametre toleransı
+
+behavior_server:
+  ros__parameters:
+    local_costmap_topic: local_costmap/costmap_raw  # Yerel maliyet haritası topic'i
+    local_footprint_topic: local_costmap/published_footprint  # Yerel ayak izi topic'i
+    global_costmap_topic: global_costmap/costmap_raw  # Global maliyet haritası topic'i
+    global_footprint_topic: global_costmap/published_footprint  # Global ayak izi topic'i
+    cycle_frequency: 3.0  # Daha iyi performans için daha da azaltıldı - davranış döngü frekansı
+    behavior_plugins: ["spin", "backup", "drive_on_heading", "wait", "assisted_teleop"]  # Davranış eklentileri
+    spin:  # Dönme davranışı
+      plugin: "nav2_behaviors/Spin"  # Iron ve eski sürümlerde "/" "::" yerine kullanılırdı
+    backup:  # Geri gitme davranışı
+      plugin: "nav2_behaviors/BackUp"  # Iron ve eski sürümlerde "/" "::" yerine kullanılırdı
+    drive_on_heading:  # Yönde ilerleme davranışı
+      plugin: "nav2_behaviors/DriveOnHeading"  # Iron ve eski sürümlerde "/" "::" yerine kullanılırdı
+    wait:  # Bekleme davranışı
+      plugin: "nav2_behaviors/Wait"  # Iron ve eski sürümlerde "/" "::" yerine kullanılırdı
+    assisted_teleop:  # Yardımlı uzaktan kumanda davranışı
+      plugin: "nav2_behaviors/AssistedTeleop"  # Iron ve eski sürümlerde "/" "::" yerine kullanılırdı
+    local_frame: odom  # Yerel çerçeve - odometri koordinat sistemi
+    global_frame: map  # Global çerçeve - harita koordinat sistemi
+    robot_base_frame: base_footprint  # Robot ana çerçevesi - robotun referans noktası
+    transform_timeout: 0.05  # Daha iyi lokalizasyon için çok daha sıkı zaman aşımı - transform gecikmesi toleransı
+    simulate_ahead_time: 3.0  # İleriye simülasyon zamanı - davranışları kaç saniye öne simüle et
+    max_rotational_vel: 3.0  # Maksimum dönüş hızı - robotun maksimum açısal hızı
+    min_rotational_vel: 0.4  # Minimum dönüş hızı - robotun minimum açısal hızı
+    rotational_acc_lim: 3.2  # Dönüş ivme sınırı - robotun maksimum açısal ivmesi
+    enable_stamped_cmd_vel: false  # Zaman damgalı cmd_vel etkinleştir - Jazzy ve öncesi sürümlerde varsayılan false
+    
+robot_state_publisher:
+  ros__parameters:
+    use_sim_time: True  # Simülasyon zamanı kullan - robot durum yayıncısı
+
+waypoint_follower:
+  ros__parameters:
+    loop_rate: 5  # Daha iyi performans için daha da azaltıldı - yol noktası takip döngü oranı
+    stop_on_failure: false  # Başarısızlıkta durma - hata durumunda robotun durması
+    waypoint_task_executor_plugin: "wait_at_waypoint"  # Yol noktası görev yürütücü eklentisi
+    wait_at_waypoint:  # Yol noktasında bekleme ayarları
+      plugin: "nav2_waypoint_follower::WaitAtWaypoint"  # Yol noktasında bekleme eklentisi
+      enabled: True  # Etkin - bu eklentiyi kullan
+      waypoint_pause_duration: 0  # Yol noktası duraklatma süresi - her yol noktasında kaç saniye bekle
+
+velocity_smoother:
+  ros__parameters:
+    smoothing_frequency: 8.0  # Daha iyi performans için daha da azaltıldı - hız yumuşatma frekansı
+    scale_velocities: false  # Hızları ölçekle - hız değerlerini ölçeklendir
+    feedback: "OPEN_LOOP"  # Geri bildirim tipi - açık döngü kontrolü
+    max_velocity: [0.8, 0.0, 0.8]  # Maksimum hız - [x, y, theta] maksimum hız değerleri
+    min_velocity: [-0.8, 0.0, -0.8]  # Minimum hız - [x, y, theta] minimum hız değerleri
+    deadband_velocity: [0.0, 0.0, 0.0]  # Ölü bölge hızı - küçük hızları sıfırla
+    velocity_timeout: 1.0  # Hız zaman aşımı - hız komutları için maksimum geçerlilik süresi
+    max_accel: [1.0, 0.0, 1.0]  # Maksimum ivme - [x, y, theta] maksimum ivme değerleri
+    max_decel: [-1.0, 0.0, -1.0]  # Maksimum yavaşlama - [x, y, theta] maksimum negatif ivme
+    odom_topic: "odom"  # Odometri topic'i - robot hız bilgilerinin geldiği kanal
+    odom_duration: 0.1  # Odometri süresi - odometri verilerinin geçerlilik süresi
+    use_realtime_priority: false  # Gerçek zamanlı öncelik kullan - sistem öncelik ayarı
+    enable_stamped_cmd_vel: false  # Zaman damgalı cmd_vel etkinleştir - zaman bilgisi ekle

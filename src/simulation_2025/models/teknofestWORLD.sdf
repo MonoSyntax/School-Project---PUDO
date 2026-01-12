@@ -1,0 +1,1960 @@
+<?xml version="1.0"?>
+<sdf version='1.10'>
+  <world name='default'>
+    <physics name='1ms' type='ignored'>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+    <plugin name='ignition::gazebo::systems::Physics' filename='gz-sim-physics-system' />
+    <plugin name='ignition::gazebo::systems::SceneBroadcaster'
+      filename='gz-sim-scene-broadcaster-system' />
+    <plugin name='ignition::gazebo::systems::UserCommands' filename='gz-sim-user-commands-system' />
+    <plugin name='gz::sim::systems::Sensors' filename='gz-sim-sensors-system'>
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin name='gz::sim::systems::NavSat' filename='gz-sim-navsat-system' />
+    <plugin name='gz::sim::systems::Imu' filename='gz-sim-imu-system' />
+    <plugin
+      filename="gz-sim-magnetometer-system"
+      name="gz::sim::systems::Magnetometer">
+    </plugin>
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <world_frame_orientation>ENU</world_frame_orientation>
+      <latitude_deg>-31.640061833333334</latitude_deg>
+      <longitude_deg>-60.67209583333333</longitude_deg>
+      <elevation>44.4</elevation>
+      <heading_deg>180.0</heading_deg>
+    </spherical_coordinates>
+    <magnetic_field>5.5644999999999998e-06 2.2875799999999999e-05 -4.2388400000000002e-05</magnetic_field>
+    <gravity>0 0 -9.80665</gravity>
+    <atmosphere type='adiabatic' />
+    <scene>
+      <ambient>0.400000006 0.400000006 0.400000006 1</ambient>
+      <background>0.699999988 0.699999988 0.699999988 1</background>
+      <sky>
+        <clouds>
+          <speed>15.000</speed>
+        </clouds>
+      </sky>
+      <shadows>true</shadows>
+    </scene>
+    <model name='TeknofestHaritav2'>
+      <static>true</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/teknofest_zemin/meshes/teknofestharitav2.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/teknofest_zemin/meshes/teknofestharitav2.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>0 0 0 0 0 0</pose>
+      <self_collide>false</self_collide>
+    </model>
+    <include>
+      <uri>package://simulation_2025/models/stop_light_post</uri>
+      <name>stop_light_post</name>
+      <pose>-39.289000000000001 3.5320900000000002 0 0 0 1.5762400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/stop_light_post</uri>
+      <name>stop_light_post_0</name>
+      <pose>-28.832100000000001 -59.305599999999998 0 0 0 -1.5538400000000003</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/stop_light_post</uri>
+      <name>stop_light_post_1</name>
+      <pose>-9.7559799999999992 -19.499600000000001 0 0 0 -1.5487700000000009</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/durak_levha</uri>
+      <name>DurakLevha</name>
+      <pose>-62.439900000000002 -36.8536 0 0 0 1.49912</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/durak_levha</uri>
+      <name>DurakLevha_0</name>
+      <pose>-42.521700000000003 -61.871200000000002 0 0 0 2.9287899999999998</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/durak_levha</uri>
+      <name>DurakLevha_1</name>
+      <pose>-18.789400000000001 -24.401399999999999 0 0 0 -1.4925999999999997</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/donel_kavsak_levha</uri>
+      <name>DonelKavsak</name>
+      <pose>-21.371700000000001 -49.805399999999999 0 0 0 -1.6406000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/donel_kavsak_levha</uri>
+      <name>DonelKavsak_0</name>
+      <pose>-35.172699999999999 -43.2316 0 0 0 3.0950199999999999</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/donel_kavsak_levha</uri>
+      <name>DonelKavsak_1</name>
+      <pose>-28.377600000000001 -29.726700000000001 0 0 0 1.4368899999999998</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/donel_kavsak_levha</uri>
+      <name>DonelKavsak_2</name>
+      <pose>-14.947100000000001 -36.276699999999998 0 0 0 -0.017246000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer</name>
+      <pose>0.10786999999999999 3.4992700000000001 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer</name>
+      <pose>-2 3.5049600000000001 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1</name>
+      <pose>-4.0795599999999999 3.5112199999999998 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1</name>
+      <pose>-6.1809900000000004 3.5314399999999999 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1</name>
+      <pose>-8.3466199999999997 3.5272800000000002 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1</name>
+      <pose>-10.517799999999999 3.5630500000000001 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1</name>
+      <pose>-12.643800000000001 3.5325600000000001 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1</name>
+      <pose>-14.7996 3.5680100000000001 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1</name>
+      <pose>-16.9375 3.56867 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1</name>
+      <pose>-19.1816 3.5583399999999998 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1</name>
+      <pose>-21.318999999999999 3.5587900000000001 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1</name>
+      <pose>-23.4968 3.5769899999999999 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1</name>
+      <pose>-25.707899999999999 3.5786199999999999 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1</name>
+      <pose>-27.892499999999998 3.6085400000000001 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1</name>
+      <pose>-30.050699999999999 3.6092499999999998 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1</name>
+      <pose>-32.192500000000003 3.6444399999999999 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1</name>
+      <pose>-34.387799999999999 3.6457099999999998 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1</name>
+      <pose>-36.660600000000002 3.6548500000000002 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1</name>
+      <pose>-40.786499999999997 3.68798 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1</name>
+      <pose>-43.002699999999997 3.72438 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_2</name>
+      <pose>-38.743699999999997 4.6217600000000001 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-45.109400000000001 3.7113200000000002 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-47.203099999999999 3.7475800000000001 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-49.362200000000001 3.74892 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-51.485199999999999 3.77935 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-53.670900000000003 3.77759 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2</name>
+      <pose>-54.361400000000003 -60.233800000000002 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2</name>
+      <pose>-52.241500000000002 -60.240499999999997 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1</name>
+      <pose>-50.063099999999999 -60.280200000000001 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_1</name>
+      <pose>-48.206000000000003 -61.148000000000003 0 0 0 -2.3258899999999998</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_1</name>
+      <pose>-46.489899999999999 -62.652099999999997 0 0 0 -2.2500100000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2</name>
+      <pose>-44.0349 -63.509 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2</name>
+      <pose>-41.883899999999997 -63.557299999999998 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1</name>
+      <pose>-39.757399999999997 -63.548299999999998 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_1_1</name>
+      <pose>-37.686100000000003 -61.932400000000001 0 0 0 2.13992</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_1_1</name>
+      <pose>-35.500100000000003 -61.213900000000002 0 0 0 -0.81143300000000007</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1</name>
+      <pose>-33.616999999999997 -60.371299999999998 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1</name>
+      <pose>-31.431899999999999 -60.344000000000001 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1</name>
+      <pose>-29.322900000000001 -60.545299999999997 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1</name>
+      <pose>-27.198499999999999 -60.494599999999998 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1</name>
+      <pose>-25.081 -60.515500000000003 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1</name>
+      <pose>-22.959700000000002 -60.500300000000003 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1</name>
+      <pose>-20.813199999999998 -60.499400000000001 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1</name>
+      <pose>-18.6935 -60.4634 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1</name>
+      <pose>-16.568300000000001 -60.430900000000001 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1</name>
+      <pose>-14.4695 -60.415900000000001 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1</name>
+      <pose>-12.3141 -60.436900000000001 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1</name>
+      <pose>-10.1252 -60.443800000000003 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1</name>
+      <pose>-7.9500099999999998 -60.470700000000001 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1</name>
+      <pose>-5.7749899999999998 -60.434600000000003 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1</name>
+      <pose>-3.3742100000000002 -59.874499999999998 0 0 0 -1.1214</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1</name>
+      <pose>-1.4704999999999999 -58.170999999999999 0 0 0 -0.59510800000000008</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1</name>
+      <pose>-1.45119 -55.717100000000002 0 0 0 3.13653</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-1.4720200000000001 -53.499699999999997 0 0 0 -3.1318600000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-1.4819199999999999 -51.407899999999998 0 0 0 3.13653</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-1.4877499999999999 -49.296799999999998 0 0 0 -3.1318600000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-1.48664 -47.209600000000002 0 0 0 3.13653</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-1.5121500000000001 -45.147799999999997 0 0 0 -3.1318600000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-1.5617399999999999 -43.053400000000003 0 0 0 3.13653</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-1.58304 -40.938499999999998 0 0 0 -3.1318600000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-1.5887899999999999 -38.805 0 0 0 3.13653</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-1.61084 -36.713500000000003 0 0 0 -3.1318600000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-1.6187400000000001 -34.591900000000003 0 0 0 3.13653</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-1.63273 -32.450699999999998 0 0 0 -3.1318600000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-1.6433 -30.3216 0 0 0 3.13653</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-0.72283200000000003 -27.896999999999998 0 0 0 2.5071099999999999</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>1.7949600000000001 -27.428100000000001 0 0 0 -1.5735699999999999</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_2</name>
+      <pose>3.99708 -27.414300000000001 0 0 0 -1.5725500000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>6.1503100000000002 -27.408200000000001 0 0 0 -1.5735699999999999</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_2_1</name>
+      <pose>8.2904999999999998 -27.399899999999999 0 0 0 -1.5725500000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>10.421900000000001 -27.417300000000001 0 0 0 -1.5735699999999999</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_2_1_1</name>
+      <pose>12.502599999999999 -27.401299999999999 0 0 0 -1.5725500000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>14.66 -27.4086 0 0 0 -1.5735699999999999</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_2_1_1_1</name>
+      <pose>16.793800000000001 -27.420999999999999 0 0 0 -1.5725500000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>18.8934 -27.4269 0 0 0 -1.5735699999999999</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_2_1_1_1_1</name>
+      <pose>21.475899999999999 -26.694600000000001 0 0 0 -0.87125900000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>22.4893 -24.2059 0 0 0 0.0091700000000000028</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_2_1_1_1_1_1</name>
+      <pose>21.633500000000002 -22.143000000000001 0 0 0 -3.1317699999999999</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>22.447199999999999 -20.040700000000001 0 0 0 0.0091700000000000028</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_2_1_1_1_1_1_1</name>
+      <pose>21.600300000000001 -17.9619 0 0 0 -3.1317699999999999</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>22.410900000000002 -15.851599999999999 0 0 0 0.0091700000000000028</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_2_1_1_1_1_1_1_1</name>
+      <pose>21.564 -13.787100000000001 0 0 0 -3.1317699999999999</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>
+        KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>22.403400000000001 -11.6785 0 0 0 0.0091700000000000028</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_2_1_1_1_1_1_1_1_1</name>
+      <pose>21.542300000000001 -9.5936500000000002 0 0 0 -3.1317699999999999</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>
+        KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>22.3809 -7.5225900000000001 0 0 0 0.0091700000000000028</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_2_1_1_1_1_1_1_1_1_1</name>
+      <pose>21.5228 -5.4576700000000002 0 0 0 -3.1317699999999999</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>
+        KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>22.3249 -3.3372000000000002 0 0 0 0.0091700000000000028</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_2_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>21.468900000000001 -1.2568699999999999 0 0 0 -3.1317699999999999</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>
+        KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_2_1_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>22.273399999999999 0.82996000000000003 0 0 0 0.0091700000000000028</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_2_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_2_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>21.0425 2.9360200000000001 0 0 0 -2.6704300000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_2</name>
+      <pose>2.2466599999999999 3.4881600000000001 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_2</name>
+      <pose>4.3765799999999997 3.4682499999999998 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_2_1</name>
+      <pose>6.5125299999999999 3.4748700000000001 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_2_1</name>
+      <pose>8.6795600000000004 3.4567299999999999 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_2_1_1</name>
+      <pose>10.825799999999999 3.4565899999999998 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_2_1_1</name>
+      <pose>12.9758 3.4375800000000001 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_2_1_1_1</name>
+      <pose>15.0641 3.4507099999999999 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_2_1_1_1</name>
+      <pose>17.198899999999998 3.4337300000000002 0 0 0 -1.5717000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_2_1_1_1_1</name>
+      <pose>19.366199999999999 3.4293200000000001 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-55.817500000000003 3.7802799999999999 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-57.782499999999999 3.1745399999999999 0 0 0 -0.95900699999999994</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-59.241100000000003 1.6916500000000001 0 0 0 -0.53101000000000032</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.209499999999998 -0.20133000000000001 0 0 0 -0.34415499999999971</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.612699999999997 -2.3035100000000002 0 0 0 -0.019258000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.654800000000002 -4.4290599999999998 0 0 0 -0.0060940000000000022</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.681399999999996 -6.5019999999999998 0 0 0 -0.019258000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.712800000000001 -8.5874600000000001 0 0 0 -0.0060940000000000022</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.7318 -10.6472 0 0 0 -0.019258000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.765500000000003 -12.7279 0 0 0 -0.0060940000000000022</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.7746 -14.817500000000001 0 0 0 -0.019258000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.785699999999999 -16.921900000000001 0 0 0 -0.0060940000000000022</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.7714 -18.988299999999999 0 0 0 -0.019258000000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.756999999999998 -21.049299999999999 0 0 0 -0.0060940000000000022</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.759700000000002 -23.116499999999998 0 0 0 -0.0063040000000000023</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.769100000000002 -25.158100000000001 0 0 0 -0.0060940000000000022</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.762300000000003 -27.219200000000001 0 0 0 -0.0063040000000000023</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.784700000000001 -29.284400000000002 0 0 0 -0.0060940000000000022</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-61.3977 -31.670100000000001 0 0 0 -0.49684600000000001</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-62.2913 -33.552599999999998 0 0 0 -0.33538899999999977</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-62.803899999999999 -35.578600000000002 0 0 0 -0.171542</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-62.912599999999998 -37.702100000000002 0 0 0 0.050346000000000016</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-62.7562 -39.8947 0 0 0 0.06993200000000005</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-61.832700000000003 -41.729999999999997 0 0 0 0.85271200000000014</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.397799999999997 -43.833100000000002 0 0 0 0.27147900000000019</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.095100000000002 -46.087400000000002 0 0 0 0.011888999999999997</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_2</name>
+      <pose>-60.075899999999997 -48.1357 0 0 0 0.0096500000000000006</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-60.0486 -50.2012 0 0 0 0.011888999999999997</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_2_1</name>
+      <pose>-60.014000000000003 -52.255600000000001 0 0 0 0.0096500000000000006</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-59.981699999999996 -54.306399999999996 0 0 0 0.011888999999999997</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_2_1_1</name>
+      <pose>-59.936100000000003 -56.356499999999997 0 0 0 0.0096500000000000006</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/kirmizi_bariyer</uri>
+      <name>KirmiziBariyer_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1</name>
+      <pose>-59.120699999999999 -58.191899999999997 0 0 0 0.80245</pose>
+    </include>
+    <include>
+      <uri>package://simulation_2025/models/beyaz_bariyer</uri>
+      <name>BeyazBariyer_1_1_1_1_1_1_1_1_1_2_3</name>
+      <pose>-56.4161 -60.232100000000003 0 0 0 -1.5805400000000001</pose>
+    </include>
+    <model name='ileri_veya_sola_mecburi_levha'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/ileri_veya_sola_mecburi_levha/meshes/ileri_veya_sola_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/ileri_veya_sola_mecburi_levha/meshes/ileri_veya_sola_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-21.579999999999998 3.1400000000000001 0 0 0 0</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='sola_donulmez_levha'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/sola_donulmez_levha/meshes/sola_donulmez_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/sola_donulmez_levha/meshes/sola_donulmez_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-38.896795985787435 -3.7710273283417384 0 0 0 0</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='teknofesttunel'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/teknofesttunel/meshes/teknofesttunel.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/teknofesttunel/meshes/teknofesttunel.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-43.101554870605469 -28.214649200439457 0 0 0 -1.5716900022979434</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='ileri_veya_saga_mecburi_levha'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/ileri_veya_saga_mecburi_levha/meshes/ileri_veya_saga_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/ileri_veya_saga_mecburi_levha/meshes/ileri_veya_saga_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-28.502700805664062 -10.282600402832031 0 0 0 1.4788469352884439</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='sola_donulmez_levha_0'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/sola_donulmez_levha/meshes/sola_donulmez_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/sola_donulmez_levha/meshes/sola_donulmez_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-21.403799057006836 -11.175800323486328 0 0 0 1.5198704143948152</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='ileri_veya_sola_mecburi_levha_0'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/ileri_veya_sola_mecburi_levha/meshes/ileri_veya_sola_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/ileri_veya_sola_mecburi_levha/meshes/ileri_veya_sola_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-38.973646471228527 -11.042765669265485 0 0 0 0</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='sola_donulmez_levha_1'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/sola_donulmez_levha/meshes/sola_donulmez_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/sola_donulmez_levha/meshes/sola_donulmez_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-52.740898132324219 -35.489200592041016 0 0 0 1.5594306461265042</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='girisi_olmayan_yol_levha'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/girisi_olmayan_yol_levha/meshes/girisi_olmayan_yol_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/girisi_olmayan_yol_levha/meshes/girisi_olmayan_yol_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-46.701698303222649 -43.560798645019531 0 0 0 1.515468798909491</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='sola_donulmez_levha_2'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/sola_donulmez_levha/meshes/sola_donulmez_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/sola_donulmez_levha/meshes/sola_donulmez_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-47.273200988769531 -52.137599945068374 0 0 0 -3.0664019672877103</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='sol_mecburi_levha'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/sol_mecburi_levha/meshes/sol_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/sol_mecburi_levha/meshes/sol_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-28.872600555419915 -52.362400054931641 0 0 0 -3.0293583207563457</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='girisi_olmayan_yol_levha_0'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/girisi_olmayan_yol_levha/meshes/girisi_olmayan_yol_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/girisi_olmayan_yol_levha/meshes/girisi_olmayan_yol_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-15.636899948120117 -43.564701080322259 0 0 0 -3.0636807259253565</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='ileri_mecburi_levha'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/ileri_mecburi_levha/meshes/ileri_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/ileri_mecburi_levha/meshes/ileri_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-21.391700744628906 -30.472000122070312 0 0 0 -1.5125830459867819</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='ileri_veya_saga_mecburi_levha_0'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/ileri_veya_saga_mecburi_levha/meshes/ileri_veya_saga_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/ileri_veya_saga_mecburi_levha/meshes/ileri_veya_saga_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-21.386100769042965 -19.508499145507812 0 0 0 -1.6711397505057446</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='sol_mecburi_levha_0'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/sol_mecburi_levha/meshes/sol_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/sol_mecburi_levha/meshes/sol_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-8.5670900344848633 -25.812200546264648 0 0 0 1.5244087510775408</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='sola_donulmez_levha_3'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/sola_donulmez_levha/meshes/sola_donulmez_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/sola_donulmez_levha/meshes/sola_donulmez_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-9.0715599060058612 -12.298100471496584 0 0 0 3.1108664293704189</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='ileri_mecburi_levha_0'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/ileri_mecburi_levha/meshes/ileri_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/ileri_mecburi_levha/meshes/ileri_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-9.038760140930453 3.2746238677036801 0 0 0 0</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='iki_yonlu_levha'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/iki_yonlu_levha/meshes/iki_yonlu_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/iki_yonlu_levha/meshes/iki_yonlu_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-46.453506469726555 -20.2211799621582 0 0 0 1.4993500980616292</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='sag_mecburi_levha'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/sag_mecburi_levha/meshes/sag_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/sag_mecburi_levha/meshes/sag_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-46.602100372314453 -35.277999877929688 0 0 0 1.461252498541016</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='ileri_sol_mecburi_levha'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/ileri_sol_mecburi_levha/meshes/ileri_sol_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                package://simulation_2025/models/ileri_sol_mecburi_levha/meshes/ileri_sol_mecburi_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-51.971312012503617 3.287707515833405 0 0 0 0</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='red'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/kirmizi_bariyer/meshes/red.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/kirmizi_bariyer/meshes/red.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-16.170900344848633 -1.5230525732040405 0 0 0 0</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='white'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/beyaz_bariyer/meshes/white.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/beyaz_bariyer/meshes/white.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-34.342899322509766 -37.675613403320312 0 0 0 0</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='red_0'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/kirmizi_bariyer/meshes/red.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/kirmizi_bariyer/meshes/red.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-34.327999114990234 -39.733356475830078 0 0 0 0</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='white_0'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/beyaz_bariyer/meshes/white.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/beyaz_bariyer/meshes/white.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-34.330398559570312 -41.828422546386719 0 0 0 0</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='park_levha'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/park_levha/meshes/park_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/park_levha/meshes/park_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>20.823799133300781 -15.716300010681154 0 0 0 3.1254041389935794</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='park_yasak2_levha'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/park_yasak2_levha/meshes/park_yasak2_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/park_yasak2_levha/meshes/park_yasak2_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>20.831100463867188 -18.559000015258789 0 0 0 3.1400835768335371</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='park_yasak2_levha_0'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/park_yasak2_levha/meshes/park_yasak2_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/park_yasak2_levha/meshes/park_yasak2_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>20.823299407958984 -21.392400741577152 0 0 0 -3.1318354900967758</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='white_1'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/beyaz_bariyer/meshes/white.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/beyaz_bariyer/meshes/white.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>14.239418282013144 -21.404094941445692 0 0 0 0</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='park_levha_0'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/park_levha/meshes/park_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/park_levha/meshes/park_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>20.838699340820312 -12.852999687194824 0 0 0 -3.1196839398767122</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='park_yasak2_levha_1'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/park_yasak2_levha/meshes/park_yasak2_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/park_yasak2_levha/meshes/park_yasak2_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>20.828399658203125 -9.9496002197265625 0 0 0 3.1409669828600042</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='park_levha_1'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/park_levha/meshes/park_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/park_levha/meshes/park_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>20.759700775146484 -6.9992899894714391 0 0 0 -3.1272888847304863</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='park_yasak2_levha_2'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/park_yasak2_levha/meshes/park_yasak2_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/park_yasak2_levha/meshes/park_yasak2_levha.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>20.811399459838867 -4.2369298934936523 0 0 0 -3.1204939919269425</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='red_1'>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/kirmizi_bariyer/meshes/red.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>package://simulation_2025/models/kirmizi_bariyer/meshes/red.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>14.182736161597918 -12.905916203354 0 0 0 0</pose>
+      <static>true</static>
+      <self_collide>false</self_collide>
+    </model>
+    <light name='sun' type='directional'>
+      <pose>0 0 10 0 0 0</pose>
+      <cast_shadows>true</cast_shadows>
+      <intensity>1</intensity>
+      <direction>-0.5 0.10000000000000001 -0.90000000000000002</direction>
+      <diffuse>0.800000012 0.800000012 0.800000012 1</diffuse>
+      <specular>0.200000003 0.200000003 0.200000003 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <linear>0.01</linear>
+        <constant>0.90000000000000002</constant>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>0</outer_angle>
+        <falloff>0</falloff>
+      </spot>
+    </light>
+  </world>
+</sdf>

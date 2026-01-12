@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- ZED IMU Link - No visual needed as it's integrated into ZED camera -->
+    <link name='zed_imu_link'>
+        <inertial>
+            <mass value="0.001" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
+        </inertial>
+    </link>
+
+    <joint name="zed_imu_joint" type="fixed">
+        <parent link="zed_camera_center" />
+        <child link="zed_imu_link" />
+        <origin xyz="0 0 0" rpy="0 0 0" />
+    </joint>
+
+
+    <gazebo reference="zed_imu_link">
+        <sensor name="zed_imu_sensor" type="imu">
+            <gz_frame_id>zed_imu_link</gz_frame_id>
+            <always_on>1</always_on>
+            <update_rate>100</update_rate>
+            <visualize>true</visualize>
+            <topic>zed2/zed_wrapper/imu/data</topic>
+            <imu>
+                <angular_velocity>
+                    <x>
+                        <noise type="none">
+                        </noise>
+                    </x>
+                    <y>
+                        <noise type="none">
+                        </noise>
+                    </y>
+                    <z>
+                        <noise type="none">
+                        </noise>
+                    </z>
+                </angular_velocity>
+                <linear_acceleration>
+                    <x>
+                        <noise type="none">
+                        </noise>
+                    </x>
+                    <y>
+                        <noise type="none">
+                        </noise>
+                    </y>
+                    <z>
+                        <noise type="none">
+                        </noise>
+                    </z>
+                </linear_acceleration>
+            </imu>
+        </sensor>
+    </gazebo>
+
+</robot>

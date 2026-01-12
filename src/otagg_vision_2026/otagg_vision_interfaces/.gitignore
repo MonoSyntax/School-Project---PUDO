@@ -1,0 +1,46 @@
+# Build artifacts
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ROS2 specific
+*.log
+*.bag
+*.db3
+
+# Model files
+*.pt
+*.onnx
+*.pth
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Coverage and testing
+.coverage
+htmlcov/
+.pytest_cache/
