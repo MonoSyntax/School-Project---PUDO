@@ -1,97 +1,106 @@
 ekf_filter_node:
     ros__parameters:
-        frequency: 20.0  # Frekans: EKF güncellemesi için 20Hz - daha stabil füzyon için azaltılmış
-        two_d_mode: true  # 2D mod: Robotun sadece düzlemde hareket ettiğini varsayar (z ekseni sabit)
-        publish_acceleration: false  # İvme yayınlama: Gürültüyü azaltmak için kapatılmış
-        predict_to_current_time: false  # Güncel zamana tahmin: Daha stabil davranış için kapatılmış
-        publish_tf: true  # TF yayınlama: Transform bilgilerini yayınlar
-        odom_frame: odom  # Odometri frame'i: ROS koordinat sisteminde odometri referansı
-        base_link_frame: base_footprint  # Robot base frame'i: URDF ve nav2 ile tutarlı
-        world_frame: odom  # Dünya frame'i: Global koordinat sistemi referansı
-        transform_timeout: 0.1  # Transform zaman aşımı: Daha iyi lokalizasyon için sıkılaştırılmış
+        frequency: 30.0
+        two_d_mode: true
+        publish_acceleration: false
+        predict_to_current_time: false
+        publish_tf: true
+        odom_frame: odom
+        base_link_frame: base_footprint
+        world_frame: odom
+        transform_timeout: 0.1
 
-        odom0: /odom  # Birincil odometri kaynağı: Tekerlek encoder'larından gelen odometri
-        odom0_config: [true, true, true,    # X, Y, Z pozisyonu kullan
-                    false, false, false,    # Roll, pitch, yaw açıları kullanma
-                    true,  true,  true,     # X, Y, Z hızları kullan
-                    false, false, false,    # Roll, pitch, yaw açısal hızları kullanma
-                    false, false, false]    # X, Y, Z ivmeleri kullanma
-        odom0_queue_size: 5  # Kuyruk boyutu: İşlem için bekleyen mesaj sayısı
-        odom0_nodelay: true  # Gecikme yok: Mesajları hemen işle
-        odom0_differential: false  # Diferansiyel mod: Mutlak değerler kullan
-        odom0_relative: false  # Göreceli mod: Mutlak koordinatlar kullan
-        odom0_rejection_threshold: 2.0  # Reddedilme eşiği: Outlier'ları reddet
+        odom0: /odom
+        odom0_config: [true, true, true,
+                    false, false, false,
+                    true,  true,  true,
+                    false, false, false,
+                    false, false, false]
+        odom0_queue_size: 5
+        odom0_nodelay: true
+        odom0_differential: false
+        odom0_relative: false
+        odom0_rejection_threshold: 2.0
 
-        odom1: odometry/gps  # İkincil odometri kaynağı: GPS'den gelen odometri
-        odom1_config: [false, false, false,  # GPS pozisyonu: Stabilite için kapatılmış
-                    false, false, false,     # GPS açıları: Kullanılmıyor
-                    false, false, false,     # GPS hızları: Stabilite için kapatılmış
-                    false, false, false,     # GPS açısal hızları: Kullanılmıyor
-                    false, false, false]     # GPS ivmeleri: Kullanılmıyor
-        odom1_queue_size: 10  # Kuyruk boyutu: GPS gecikmesi için daha büyük
-        odom1_nodelay: true  # Gecikme yok: Mesajları hemen işle
-        odom1_differential: false  # Diferansiyel mod: Mutlak değerler kullan
-        odom1_relative: false  # Göreceli mod: Mutlak koordinatlar kullan
-        odom1_rejection_threshold: 10.0  # Reddedilme eşiği: GPS outlier'ları için yüksek
+        odom1: odometry/gps
+        odom1_config: [false, false, false,
+                    false, false, false,
+                    false, false, false,
+                    false, false, false,
+                    false, false, false]
+        odom1_queue_size: 10
+        odom1_nodelay: true
+        odom1_differential: false
+        odom1_relative: false
+        odom1_rejection_threshold: 10.0
 
-        imu0: /imu  # IMU sensörü: Atalet ölçüm ünitesi
-        imu0_config: [false, false, false,  # IMU pozisyonu: Kullanılmıyor
-                    true,  true,  true,     # IMU açıları: Roll, pitch, yaw kullan
-                    false, false, false,    # IMU hızları: Kullanılmıyor
-                    true,  true,  true,     # IMU açısal hızları: Gyroscope verileri
-                    true,  true,  true]     # IMU ivmeleri: Accelerometer verileri
-        imu0_remove_gravitational_acceleration: true  # Yerçekimi ivmesi: Doğruluk için önemli
-        imu0_queue_size: 5  # Kuyruk boyutu: İşlem için bekleyen mesaj sayısı
-        imu0_nodelay: true  # Gecikme yok: Mesajları hemen işle
-        imu0_differential: false  # Diferansiyel mod: Mutlak değerler kullan
-        imu0_relative: false  # Göreceli mod: Mutlak koordinatlar kullan
-        imu0_rejection_threshold: 1.0  # Reddedilme eşiği: IMU outlier'ları için
+        imu0: /imu
+        imu0_config: [false, false, false,
+                    true,  true,  true,
+                    false, false, false,
+                    true,  true,  true,
+                    true,  true,  true]
+        imu0_remove_gravitational_acceleration: true
+        imu0_queue_size: 5
+        imu0_nodelay: true
+        imu0_differential: false
+        imu0_relative: false
+        imu0_rejection_threshold: 1.0
 
-        # Süreç gürültüsü kovaryans matrisi: Sistem modelindeki belirsizlikleri temsil eder
-        # 15x15 matris: [x, y, z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay, az]
-        # Daha düşük değerler = daha az gürültü varsayımı, daha yüksek değerler = daha fazla belirsizlik
-        process_noise_covariance: [0.005, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-                                   0.0,  0.005, 0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-                                   0.0,  0.0,  0.006, 0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-                                   0.0,  0.0,  0.0,  0.003, 0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-                                   0.0,  0.0,  0.0,  0.0,  0.003, 0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-                                   0.0,  0.0,  0.0,  0.0,  0.0,  0.006, 0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-                                   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0025, 0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-                                   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0025, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-                                   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.004, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-                                   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.001, 0.0,  0.0,  0.0,  0.0,  0.0,
-                                   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.001, 0.0,  0.0,  0.0,  0.0,
-                                   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.002, 0.0,  0.0,  0.0,
-                                   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.001, 0.0,  0.0,
-                                   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.001, 0.0,
-                                   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0015]
+        # ACKERMANN-SPECIFIC PROCESS NOISE COVARIANCE
+        # 
+        # Key differences from differential drive:
+        # 1. LOWER lateral (y) noise - Ackermann vehicles have less lateral slip
+        # 2. HIGHER yaw noise - Wider turning radius means more uncertainty in heading
+        # 3. HIGHER yaw rate noise - Turning dynamics are slower and less predictable
+        # 4. Forward (x) motion is more predictable due to non-holonomic constraints
+        #
+        # Matrix structure: [x, y, z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay, az]
+        #
+        process_noise_covariance: [
+            0.005, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+            0.0,  0.003, 0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  # Reduced y noise
+            0.0,  0.0,  0.006, 0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+            0.0,  0.0,  0.0,  0.003, 0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+            0.0,  0.0,  0.0,  0.0,  0.003, 0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+            0.0,  0.0,  0.0,  0.0,  0.0,  0.008, 0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  # Increased yaw noise
+            0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0025, 0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+            0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0015, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  # Reduced vy noise
+            0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.004, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+            0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.001, 0.0,  0.0,  0.0,  0.0,  0.0,
+            0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.001, 0.0,  0.0,  0.0,  0.0,
+            0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.003, 0.0,  0.0,  0.0,  # Increased vyaw noise
+            0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.001, 0.0,  0.0,
+            0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.001, 0.0,
+            0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0015
+        ]
 
 navsat_transform:
     ros__parameters:
-        frequency: 100.0  # Frekans: GPS koordinat dönüşümü için 100Hz
-        delay: 3.0  # Gecikme: GPS sinyali için 3 saniye başlangıç gecikmesi
-        magnetic_declination_radians: 0.0  # Manyetik sapma: Bölgesel manyetik alan farkı (radyan)
-        yaw_offset: 1.4225  # Yaw ofset: Robot yönelimi düzeltme açısı (radyan)
-        zero_altitude: true  # Sıfır rakım: Yükseklik bilgisini sıfıra sabitler
-        broadcast_utm_transform: false  # UTM dönüşümü: UTM koordinat dönüşümü yayınlamaz
-        publish_filtered_gps: true  # Filtrelenmiş GPS: İşlenmiş GPS verisini yayınlar
-        use_odometry_yaw: true  # Odometri yaw: Yönelim için odometri kullan
-        wait_for_datum: false  # Datum bekleme: GPS datum noktası beklemez
+        frequency: 100.0
+        delay: 3.0
+        magnetic_declination_radians: 0.0
+        yaw_offset: 1.4225
+        zero_altitude: true
+        broadcast_utm_transform: false
+        publish_filtered_gps: true
+        use_odometry_yaw: true
+        wait_for_datum: false
 
 imu_filter:
     ros__parameters:
-        stateless: false  # Durumsuz: Önceki durumları hafızada tutar
-        use_mag: true  # Manyetometre: Magnetometer sensörünü kullan
-        publish_tf: false  # TF yayınlama: Transform yayınlamaz (EKF ile çakışmamak için)
-        reverse_tf: false  # Ters TF: Transform yönünü tersine çevirmez
-        fixed_frame: "base_footprint"  # Sabit frame: Robot tabana dayalı koordinat sistemi
-        constant_dt: 0.0  # Sabit zaman adımı: Otomatik hesapla (0.0)
-        publish_debug_topics: false  # Debug konuları: Bant genişliğini korumak için kapatılmış
-        world_frame: "enu"  # Dünya frame'i: ENU (Doğu-Kuzey-Yukarı) koordinat sistemi
-        gain: 0.05  # Kazanç: Daha stabil filtreleme için azaltılmış
-        zeta: 0.1   # Sönümleme: Stabilite için eklenen sönümleme katsayısı
-        mag_bias_x: 0.0  # X ekseni manyetik bias: Manyetometre kalibrasyonu
-        mag_bias_y: 0.0  # Y ekseni manyetik bias: Manyetometre kalibrasyonu
-        mag_bias_z: 0.0  # Z ekseni manyetik bias: Manyetometre kalibrasyonu
-        orientation_stddev: 0.01  # Yönelim standart sapması: Ölçüm belirsizliği
-        remove_gravity_vector: true  # Yerçekimi vektörü: Doğruluk için yerçekimini kaldır
+        stateless: false
+        use_mag: true
+        publish_tf: false
+        reverse_tf: false
+        fixed_frame: "base_footprint"
+        constant_dt: 0.0
+        publish_debug_topics: false
+        world_frame: "enu"
+        gain: 0.05  # Reduced for more stable filtering
+        zeta: 0.1   # Added damping for Ackermann motion
+        mag_bias_x: 0.0
+        mag_bias_y: 0.0
+        mag_bias_z: 0.0
+        orientation_stddev: 0.01
+        remove_gravity_vector: true
