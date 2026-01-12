@@ -192,12 +192,12 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True
-        inflation_radius: 1.2  # Larger inflation for car safety
-        cost_scaling_factor: 5.0
+        inflation_radius: 0.5
+        cost_scaling_factor: 10.0
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_sources: scan
+        observation_sources: scan lane_camera
         scan:
           topic: /scan
           max_obstacle_height: 2.0
@@ -208,6 +208,16 @@ local_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 2.5
           obstacle_min_range: 0.0
+        lane_camera:
+          topic: /lane_obstacles
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "PointCloud2"
+          raytrace_max_range: 15.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 10.0
+          obstacle_min_range: 0.5
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         enabled: True
@@ -239,12 +249,12 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True
-        inflation_radius: 1.2
-        cost_scaling_factor: 5.0
+        inflation_radius: 3.5
+        cost_scaling_factor: 2.5
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_sources: scan
+        observation_sources: scan lane_camera
         scan:
           topic: /scan
           max_obstacle_height: 2.0
@@ -255,6 +265,16 @@ global_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 2.5
           obstacle_min_range: 0.0
+        lane_camera:
+          topic: /lane_obstacles
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "PointCloud2"
+          raytrace_max_range: 15.0  # Clear space between robot and lane
+          raytrace_min_range: 0.0
+          obstacle_max_range: 10.0  # Trust detections up to 10m
+          obstacle_min_range: 0.5   # Ignore noise directly under camera
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         enabled: True

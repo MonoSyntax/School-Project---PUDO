@@ -11,11 +11,12 @@ def generate_launch_description():
     # RViz2 configuration file
     rviz_config_file = os.path.join(get_package_share_directory('navigation_2025'), 'config', 'rviz2.rviz')
     
-    # Include another launch file
+    # 1. Simulation
     sim_launcher = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(get_package_share_directory('simulation_2025'), 'launch', 'teknofest_IGN.launch.py'))
     )
     
+    # 2. EKF Localization
     ekf_localization = TimerAction(
         period=10.0,
         actions=[
@@ -25,6 +26,7 @@ def generate_launch_description():
         ]
     )
 
+    # 3. AMCL Localization
     localization = TimerAction(
         period=12.5,
         actions=[
@@ -37,8 +39,9 @@ def generate_launch_description():
         ]
     )
     
+    # 4. Navigation (Nav2)
     navigation = TimerAction(
-        period=20.0,  # Increased from 15.0 to 20.0
+        period=20.0,
         actions=[
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(os.path.join(get_package_share_directory('navigation_2025'), 'launch', 'keepout_navigation_launch.py')),
@@ -50,6 +53,18 @@ def generate_launch_description():
         ]
     )
 
+    yolop_node = Node(
+        package='otagg_vision',
+        executable='yolopv2_node.py',
+        name='yolop_lane_detector',
+        output='screen',
+        parameters=[{'use_sim_time': True}]
+    )
+
+    yolop_launcher = TimerAction(
+        period=15.0,
+        actions=[yolop_node]
+    )
     
     rviz2 = Node(
                 package='rviz2',
@@ -64,6 +79,7 @@ def generate_launch_description():
     ld.add_action(ekf_localization)
     ld.add_action(localization)
     ld.add_action(navigation)
+    ld.add_action(yolop_launcher)
     ld.add_action(rviz2)
     
     return ld

@@ -16,12 +16,16 @@ find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 
-# add_executable(node src/nav_node.py)
 # ament_target_dependencies(my_nav_node rclcpp nav2_core nav2_util nav2_msgs nav2_behavior_tree geometry_msgs sensor_msgs tf2_ros)
 install(
   DIRECTORY
-    config launch maps src
+    config launch maps
   DESTINATION share/${PROJECT_NAME}
+)
+
+install(
+  PROGRAMS scripts/navigate_waypoints.py
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
