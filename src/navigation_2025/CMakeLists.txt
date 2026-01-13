@@ -24,7 +24,7 @@ install(
 )
 
 install(
-  PROGRAMS scripts/navigate_waypoints.py
+  PROGRAMS scripts/navigate_waypoints.py scripts/lane_to_costmap_bridge.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
