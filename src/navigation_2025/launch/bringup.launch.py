@@ -6,7 +6,7 @@ from launch_ros.actions import Node
 from launch.actions import IncludeLaunchDescription, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
-def generate_launch_description():   
+def generate_launch_description():
     
     # RViz2 configuration file
     rviz_config_file = os.path.join(get_package_share_directory('navigation_2025'), 'config', 'rviz2.rviz')
@@ -29,7 +29,7 @@ def generate_launch_description():
         period=12.5,
         actions=[
             IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(os.path.join(get_package_share_directory('navigation_2025'), 'launch', 'localization_launch.py')),
+                PythonLaunchDescriptionSource(os.path.join(get_package_share_directory('navigation_2025'), 'launch', 'localization.launch.py')),
                 launch_arguments={
                     'use_sim_time': 'true'
                 }.items()
@@ -38,10 +38,10 @@ def generate_launch_description():
     )
     
     navigation = TimerAction(
-        period=15.0,
+        period=20.0,  # Increased from 15.0 to 20.0
         actions=[
             IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(os.path.join(get_package_share_directory('navigation_2025'), 'launch', 'navigation_launch.py')),
+                PythonLaunchDescriptionSource(os.path.join(get_package_share_directory('navigation_2025'), 'launch', 'navigation.launch.py')),
                 launch_arguments={
                     'use_sim_time': 'true',
                     'map_subscribe_transient_local': 'true'
@@ -49,6 +49,7 @@ def generate_launch_description():
             )
         ]
     )
+
     
     rviz2 = Node(
                 package='rviz2',
@@ -57,7 +58,6 @@ def generate_launch_description():
                 output='screen'
     )
    
-
     ld = LaunchDescription()
 
     ld.add_action(sim_launcher)
