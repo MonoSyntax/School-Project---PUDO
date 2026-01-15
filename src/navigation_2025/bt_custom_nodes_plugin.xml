@@ -1,0 +1,31 @@
+<library path="bt_custom_nodes_plugin">
+  <class name="DetectOscillation" 
+         type="navigation_2025::DetectOscillation" 
+         base_class_type="BT::ConditionNode">
+    <description>Detects if robot is oscillating</description>
+  </class>
+  
+  <class name="PathDivergenceCheck" 
+         type="navigation_2025::PathDivergenceCheck" 
+         base_class_type="BT::ConditionNode">
+    <description>Checks if robot has diverged from path</description>
+  </class>
+  
+  <class name="LowVelocityCheck" 
+         type="navigation_2025::LowVelocityCheck" 
+         base_class_type="BT::ConditionNode">
+    <description>Checks if velocity is too low for too long</description>
+  </class>
+  
+  <class name="IsSafeToBackup" 
+         type="navigation_2025::IsSafeToBackup" 
+         base_class_type="BT::ConditionNode">
+    <description>Checks if it's safe to backup</description>
+  </class>
+  
+  <class name="HasClearanceForManeuver" 
+         type="navigation_2025::HasClearanceForManeuver" 
+         base_class_type="BT::ConditionNode">
+    <description>Checks if there's enough space for maneuver</description>
+  </class>
+</library>

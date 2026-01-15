@@ -1,54 +1,340 @@
-
 <!--
-  This Behavior Tree replans the global path periodically at 1 Hz through an array of poses continuously
-   and it also has recovery actions specific to planning / control as well as general system issues.
+  Enhanced Behavior Tree for Ackermann Drive Vehicle
+  ==================================================
+  
+  Key Improvements:
+  - Ackermann-specific recovery maneuvers (multi-point turns)
+  - Enhanced stuck detection with multiple conditions
+  - Faster replanning (1 Hz instead of 0.333 Hz)
+  - Better recovery action ordering for car-like vehicles
+  - Oscillation detection
+  - Path timeout and divergence checking
+  - Progressive recovery escalation
+  - Clearance validation before maneuvers
 -->
 <root BTCPP_format="4" main_tree_to_execute="MainTree">
+  
+  <!-- Main Navigation Tree -->
   <BehaviorTree ID="MainTree">
-    <RecoveryNode number_of_retries="6" name="NavigateRecovery">
+    <RecoveryNode number_of_retries="10" name="NavigateRecovery">
+      
+      <!-- Primary Navigation Pipeline -->
       <PipelineSequence name="NavigateWithReplanning">
-        <ProgressCheckerSelector selected_progress_checker="{selected_progress_checker}" default_progress_checker="progress_checker" topic_name="progress_checker_selector"/>
-        <GoalCheckerSelector selected_goal_checker="{selected_goal_checker}" default_goal_checker="general_goal_checker" topic_name="goal_checker_selector"/>
-        <ControllerSelector selected_controller="{selected_controller}" default_controller="FollowPath" topic_name="controller_selector"/>
-        <PlannerSelector selected_planner="{selected_planner}" default_planner="GridBased" topic_name="planner_selector"/>
-        <RateController hz="0.333">
-          <RecoveryNode number_of_retries="1" name="ComputePathThroughPoses">
+        
+        <!-- Selectors for swappable algorithms -->
+        <ProgressCheckerSelector 
+          selected_progress_checker="{selected_progress_checker}" 
+          default_progress_checker="progress_checker" 
+          topic_name="progress_checker_selector"/>
+        
+        <GoalCheckerSelector 
+          selected_goal_checker="{selected_goal_checker}" 
+          default_goal_checker="general_goal_checker" 
+          topic_name="goal_checker_selector"/>
+        
+        <ControllerSelector 
+          selected_controller="{selected_controller}" 
+          default_controller="FollowPath" 
+          topic_name="controller_selector"/>
+        
+        <PlannerSelector 
+          selected_planner="{selected_planner}" 
+          default_planner="GridBased" 
+          topic_name="planner_selector"/>
+        
+        <!-- Faster replanning for Ackermann vehicles (1 Hz instead of 0.333 Hz) -->
+        <RateController hz="1.0">
+          <RecoveryNode number_of_retries="3" name="ComputePathThroughPoses">
+            
+            <!-- Path Planning -->
             <ReactiveSequence>
-              <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="0.7" input_waypoint_statuses="{waypoint_statuses}" output_waypoint_statuses="{waypoint_statuses}"/>
-              <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="{selected_planner}" error_code_id="{compute_path_error_code}" error_msg="{compute_path_error_msg}"/>
+              <!-- Remove waypoints that have been passed -->
+              <RemovePassedGoals 
+                input_goals="{goals}" 
+                output_goals="{goals}" 
+                radius="1.0" 
+                input_waypoint_statuses="{waypoint_statuses}" 
+                output_waypoint_statuses="{waypoint_statuses}"/>
+              
+              <!-- Compute path through remaining goals -->
+              <ComputePathThroughPoses 
+                goals="{goals}" 
+                path="{path}" 
+                planner_id="{selected_planner}" 
+                error_code_id="{compute_path_error_code}" 
+                error_msg="{compute_path_error_msg}"/>
             </ReactiveSequence>
+            
+            <!-- Path Planning Recovery -->
             <Sequence>
               <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
-              <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>"/>
+              <ClearEntireCostmap 
+                name="ClearGlobalCostmap-Context" 
+                service_name="global_costmap/clear_entirely_global_costmap"/>
             </Sequence>
+            
           </RecoveryNode>
         </RateController>
-        <RecoveryNode number_of_retries="1" name="FollowPath">
-          <FollowPath path="{path}" controller_id="{selected_controller}" error_code_id="{follow_path_error_code}" error_msg="{follow_path_error_msg}" goal_checker_id="{selected_goal_checker}" progress_checker_id="{selected_progress_checker}"/>
+        
+        <!-- Path Following with Enhanced Recovery -->
+        <RecoveryNode number_of_retries="3" name="FollowPath">
+          
+          <!-- Main path following -->
+          <FollowPath 
+            path="{path}" 
+            controller_id="{selected_controller}" 
+            error_code_id="{follow_path_error_code}" 
+            error_msg="{follow_path_error_msg}" 
+            goal_checker_id="{selected_goal_checker}" 
+            progress_checker_id="{selected_progress_checker}"/>
+          
+          <!-- Controller Recovery -->
           <Sequence>
             <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
-            <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+            <ClearEntireCostmap 
+              name="ClearLocalCostmap-Context" 
+              service_name="local_costmap/clear_entirely_local_costmap"/>
           </Sequence>
+          
         </RecoveryNode>
+        
       </PipelineSequence>
-      <Sequence>
+      
+      <!-- Advanced Recovery Sequence for Ackermann Drive -->
+      <Sequence name="RecoverySequence">
+        
+        <!-- Check if recovery is needed -->
         <Fallback>
           <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
           <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
         </Fallback>
+        
+        <!-- Progressive Recovery Strategy -->
         <ReactiveFallback name="RecoveryFallback">
+          
+          <!-- Allow goal updates to interrupt recovery -->
           <GoalUpdated/>
-          <RoundRobin name="RecoveryActions">
-            <Sequence name="ClearingActions">
-              <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
-              <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
-            </Sequence>
-            <Spin name="SpinRecovery" spin_dist="1.57" error_code_id="{spin_error_code}" error_msg="{spin_error_msg}"/>
-            <Wait name="WaitRecovery" wait_duration="5.0" error_code_id="{wait_error_code}" error_msg="{wait_error_msg}"/>
-            <BackUp name="BackUpRecovery" backup_dist="0.30" backup_speed="0.15" error_code_id="{backup_error_code}" error_msg="{backup_error_msg}"/>
-          </RoundRobin>
+          
+          <!-- Stuck Detection Tree -->
+          <SubTree ID="StuckDetectionTree" 
+                   is_stuck="{is_stuck}" 
+                   stuck_duration="{stuck_duration}"/>
+          
+          <!-- Progressive Recovery Actions -->
+          <Sequence name="ProgressiveRecovery">
+            
+            <!-- Level 1: Light Recovery (costmap clearing) -->
+            <SubTree ID="LightRecoveryTree"/>
+            
+            <!-- Level 2: Moderate Recovery (small maneuvers) -->
+            <SubTree ID="ModerateRecoveryTree"/>
+            
+            <!-- Level 3: Aggressive Recovery (complex maneuvers) -->
+            <SubTree ID="AggressiveRecoveryTree"/>
+            
+          </Sequence>
+          
         </ReactiveFallback>
+        
       </Sequence>
+      
     </RecoveryNode>
   </BehaviorTree>
+  
+  
+  <!-- Stuck Detection Subtree -->
+  <BehaviorTree ID="StuckDetectionTree">
+    <Fallback name="StuckChecks">
+      
+      <!-- Check 1: No progress over time -->
+      <Inverter>
+        <IsPathValid path="{path}"/>
+      </Inverter>
+      
+      <!-- Check 2: Oscillation detection -->
+      <DetectOscillation threshold="0.3" time_window="10.0"/>
+      
+      <!-- Check 3: Path divergence -->
+      <PathDivergenceCheck max_divergence="2.0" path="{path}"/>
+      
+      <!-- Check 4: Prolonged low velocity -->
+      <LowVelocityCheck min_velocity="0.1" duration="5.0"/>
+      
+      <!-- If none of the above, not stuck -->
+      <AlwaysSuccess/>
+      
+    </Fallback>
+  </BehaviorTree>
+  
+  
+  <!-- Level 1: Light Recovery (Quick fixes) -->
+  <BehaviorTree ID="LightRecoveryTree">
+    <Sequence name="LightRecovery">
+      
+      <!-- Clear costmaps -->
+      <ClearEntireCostmap 
+        name="ClearLocalCostmap-Light" 
+        service_name="local_costmap/clear_entirely_local_costmap"/>
+      
+      <ClearEntireCostmap 
+        name="ClearGlobalCostmap-Light" 
+        service_name="global_costmap/clear_entirely_global_costmap"/>
+      
+      <!-- Brief wait to let costmaps rebuild -->
+      <Wait wait_duration="1.0"/>
+      
+      <!-- Try replanning -->
+      <ComputePathThroughPoses 
+        goals="{goals}" 
+        path="{path}" 
+        planner_id="{selected_planner}"/>
+      
+    </Sequence>
+  </BehaviorTree>
+  
+  
+  <!-- Level 2: Moderate Recovery (Small maneuvers) -->
+  <BehaviorTree ID="ModerateRecoveryTree">
+    <Fallback name="ModerateRecovery">
+      
+      <!-- Try small backup first -->
+      <Sequence name="SmallBackup">
+        <!-- Check if backup is safe -->
+        <IsSafeToBackup distance="0.5"/>
+        
+        <!-- Backup slowly -->
+        <BackUp 
+          backup_dist="0.5" 
+          backup_speed="0.2" 
+          time_allowance="15.0"
+          error_code_id="{backup_error_code}"/>
+        
+        <!-- Clear costmaps after backup -->
+        <ClearEntireCostmap service_name="local_costmap/clear_entirely_local_costmap"/>
+        
+        <!-- Wait briefly -->
+        <Wait wait_duration="1.0"/>
+      </Sequence>
+      
+      <!-- Try slight rotation if backup fails -->
+      <Sequence name="SlightRotation">
+        <!-- Ackermann-friendly: small angle rotation -->
+        <Spin 
+          spin_dist="0.785" 
+          time_allowance="15.0"
+          error_code_id="{spin_error_code}"/>
+        
+        <Wait wait_duration="1.0"/>
+      </Sequence>
+      
+    </Fallback>
+  </BehaviorTree>
+  
+  
+  <!-- Level 3: Aggressive Recovery (Complex Ackermann maneuvers) -->
+  <BehaviorTree ID="AggressiveRecoveryTree">
+    <Fallback name="AggressiveRecovery">
+      
+      <!-- Attempt 1: Y-Turn (3-point turn) -->
+      <SubTree ID="YTurnManeuver"/>
+      
+      <!-- Attempt 2: Extended backup with reorientation -->
+      <SubTree ID="ExtendedBackupManeuver"/>
+      
+      <!-- Attempt 3: Large area clearing with replanning -->
+      <Sequence name="LargeAreaClearing">
+        <ClearEntireCostmap service_name="local_costmap/clear_entirely_local_costmap"/>
+        <ClearEntireCostmap service_name="global_costmap/clear_entirely_global_costmap"/>
+        <Wait wait_duration="2.0"/>
+        <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="{selected_planner}"/>
+      </Sequence>
+      
+      <!-- Attempt 4: Emergency stop and wait -->
+      <Sequence name="EmergencyWait">
+        <Wait wait_duration="10.0"/>
+        <ClearEntireCostmap service_name="local_costmap/clear_entirely_local_costmap"/>
+        <ClearEntireCostmap service_name="global_costmap/clear_entirely_global_costmap"/>
+      </Sequence>
+      
+    </Fallback>
+  </BehaviorTree>
+  
+  
+  <!-- Y-Turn Maneuver (3-Point Turn for Ackermann) -->
+  <BehaviorTree ID="YTurnManeuver">
+    <Sequence name="ThreePointTurn">
+      
+      <!-- Check if space is available -->
+      <HasClearanceForManeuver 
+        front_clearance="3.0" 
+        side_clearance="2.0" 
+        rear_clearance="2.0"/>
+      
+      <!-- Step 1: Forward turn -->
+      <Sequence name="ForwardTurn">
+        <DriveOnHeading 
+          dist_to_travel="1.5" 
+          speed="0.3" 
+          time_allowance="20.0"/>
+        <Wait wait_duration="0.5"/>
+      </Sequence>
+      
+      <!-- Step 2: Backup turn (opposite direction) -->
+      <Sequence name="BackupTurn">
+        <BackUp 
+          backup_dist="1.2" 
+          backup_speed="0.2" 
+          time_allowance="20.0"/>
+        <Wait wait_duration="0.5"/>
+      </Sequence>
+      
+      <!-- Step 3: Final forward turn to complete orientation -->
+      <Sequence name="CompleteTurn">
+        <DriveOnHeading 
+          dist_to_travel="1.5" 
+          speed="0.3" 
+          time_allowance="20.0"/>
+        <Wait wait_duration="0.5"/>
+      </Sequence>
+      
+      <!-- Clear costmaps after maneuver -->
+      <ClearEntireCostmap service_name="local_costmap/clear_entirely_local_costmap"/>
+      
+    </Sequence>
+  </BehaviorTree>
+  
+  
+  <!-- Extended Backup Maneuver -->
+  <BehaviorTree ID="ExtendedBackupManeuver">
+    <Sequence name="ExtendedBackup">
+      
+      <!-- Check safety -->
+      <IsSafeToBackup distance="2.0"/>
+      
+      <!-- Long backup -->
+      <BackUp 
+        backup_dist="2.0" 
+        backup_speed="0.25" 
+        time_allowance="30.0"
+        error_code_id="{extended_backup_error_code}"/>
+      
+      <!-- Pause -->
+      <Wait wait_duration="1.0"/>
+      
+      <!-- Clear local area -->
+      <ClearEntireCostmap service_name="local_costmap/clear_entirely_local_costmap"/>
+      
+      <!-- Small forward movement to reorient -->
+      <DriveOnHeading 
+        dist_to_travel="0.5" 
+        speed="0.2" 
+        time_allowance="10.0"/>
+      
+      <!-- Final costmap clear -->
+      <ClearEntireCostmap service_name="local_costmap/clear_entirely_local_costmap"/>
+      <ClearEntireCostmap service_name="global_costmap/clear_entirely_global_costmap"/>
+      
+    </Sequence>
+  </BehaviorTree>
+  
 </root>

@@ -3,11 +3,12 @@
 <package format="3">
   <name>navigation_2025</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Navigation package for OTAGG autonomous vehicle</description>
   <maintainer email="dina@todo.todo">dina</maintainer>
-  <license>TODO: License declaration</license>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  
   <depend>rclcpp</depend>
   <depend>nav2_core</depend>
   <depend>nav2_util</depend>
@@ -15,13 +16,16 @@
   <depend>nav2_behavior_tree</depend>
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
   <depend>tf2_ros</depend>
   <depend>std_msgs</depend>
+  <depend>behaviortree_cpp_v3</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
+    <nav2_behavior_tree plugin="${prefix}/share/navigation_2025/bt_custom_nodes_plugin.xml"/>
   </export>
 </package>
