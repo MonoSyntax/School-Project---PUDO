@@ -76,27 +76,42 @@
           </RecoveryNode>
         </RateController>
         
-        <!-- Path Following with Enhanced Recovery -->
-        <RecoveryNode number_of_retries="3" name="FollowPath">
+        <!-- Traffic-Aware Path Following -->
+        <!-- Checks traffic conditions reactively while following path -->
+        <ReactiveFallback name="TrafficAwareFollowing">
           
-          <!-- Main path following -->
-          <FollowPath 
-            path="{path}" 
-            controller_id="{selected_controller}" 
-            error_code_id="{follow_path_error_code}" 
-            error_msg="{follow_path_error_msg}" 
-            goal_checker_id="{selected_goal_checker}" 
-            progress_checker_id="{selected_progress_checker}"/>
+          <!-- Check 1: Traffic Light -->
+          <SubTree ID="TrafficLightHandler"/>
           
-          <!-- Controller Recovery -->
-          <Sequence>
-            <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
-            <ClearEntireCostmap 
-              name="ClearLocalCostmap-Context" 
-              service_name="local_costmap/clear_entirely_local_costmap"/>
-          </Sequence>
+          <!-- Check 2: Stop Sign -->
+          <SubTree ID="StopSignHandler"/>
           
-        </RecoveryNode>
+          <!-- Check 3: Bus Stop PUDO -->
+          <SubTree ID="BusStopPUDO"/>
+          
+          <!-- Main Path Following with Enhanced Recovery -->
+          <RecoveryNode number_of_retries="3" name="FollowPath">
+            
+            <!-- Main path following -->
+            <FollowPath 
+              path="{path}" 
+              controller_id="{selected_controller}" 
+              error_code_id="{follow_path_error_code}" 
+              error_msg="{follow_path_error_msg}" 
+              goal_checker_id="{selected_goal_checker}" 
+              progress_checker_id="{selected_progress_checker}"/>
+            
+            <!-- Controller Recovery -->
+            <Sequence>
+              <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
+              <ClearEntireCostmap 
+                name="ClearLocalCostmap-Context" 
+                service_name="local_costmap/clear_entirely_local_costmap"/>
+            </Sequence>
+            
+          </RecoveryNode>
+          
+        </ReactiveFallback>
         
       </PipelineSequence>
       
@@ -335,6 +350,97 @@
       <ClearEntireCostmap service_name="global_costmap/clear_entirely_global_costmap"/>
       
     </Sequence>
+  </BehaviorTree>
+  
+  
+  <!-- ============================================================ -->
+  <!-- Traffic-Aware Subtrees for Sign-Based Navigation             -->
+  <!-- ============================================================ -->
+  
+  <!-- Traffic Light Handler: Stops at red/yellow, proceeds on green -->
+  <BehaviorTree ID="TrafficLightHandler">
+    <ReactiveFallback name="HandleTrafficLight">
+      
+      <!-- If no red/yellow light ahead, proceed normally (return SUCCESS) -->
+      <Inverter>
+        <Fallback>
+          <IsRedLightDetected distance_threshold="20.0"/>
+          <IsYellowLightDetected distance_threshold="15.0"/>
+        </Fallback>
+      </Inverter>
+      
+      <!-- Red/Yellow detected: Stop and wait for green -->
+      <Sequence name="StopAndWaitForGreen">
+        <!-- Log the event -->
+        <AlwaysSuccess/>
+        
+        <!-- Wait briefly (robot should already be slowing down) -->
+        <Wait wait_duration="0.5"/>
+        
+        <!-- Keep waiting until green light detected -->
+        <RetryUntilSuccessful num_attempts="1000">
+          <Sequence>
+            <IsGreenLightDetected/>
+            <Wait wait_duration="1.0"/>
+          </Sequence>
+        </RetryUntilSuccessful>
+      </Sequence>
+      
+    </ReactiveFallback>
+  </BehaviorTree>
+  
+  
+  <!-- Stop Sign Handler: Comes to full stop for 3 seconds -->
+  <BehaviorTree ID="StopSignHandler">
+    <Fallback name="HandleStopSign">
+      
+      <!-- If no stop sign ahead, proceed normally -->
+      <Inverter>
+        <IsStopSignDetected distance_threshold="8.0"/>
+      </Inverter>
+      
+      <!-- Stop sign detected: Full stop for 3 seconds -->
+      <Sequence name="StopAtSign">
+        <Wait wait_duration="3.0"/>
+      </Sequence>
+      
+    </Fallback>
+  </BehaviorTree>
+  
+  
+  <!-- Bus Stop PUDO Handler: Approach and dock at bus stop -->
+  <BehaviorTree ID="BusStopPUDO">
+    <Fallback name="HandleBusStop">
+      
+      <!-- If no bus stop ahead, proceed normally -->
+      <Inverter>
+        <IsBusStopDetected distance_threshold="15.0"/>
+      </Inverter>
+      
+      <!-- Bus stop detected: Approach and wait for passengers -->
+      <Sequence name="DockAtBusStop">
+        <!-- Wait to allow approach at reduced speed -->
+        <Wait wait_duration="2.0"/>
+        
+        <!-- Dwell time for passenger boarding/alighting -->
+        <Wait wait_duration="10.0"/>
+        
+        <!-- Brief pause before resuming -->
+        <Wait wait_duration="1.0"/>
+      </Sequence>
+      
+    </Fallback>
+  </BehaviorTree>
+  
+  
+  <!-- Speed Limit Awareness (logging only per user request) -->
+  <BehaviorTree ID="SpeedLimitCheck">
+    <Fallback>
+      <Inverter>
+        <IsSpeedLimitActive speed_limit="{detected_speed}"/>
+      </Inverter>
+      <AlwaysSuccess/>
+    </Fallback>
   </BehaviorTree>
   
 </root>

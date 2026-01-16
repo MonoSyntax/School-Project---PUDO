@@ -394,6 +394,285 @@ private:
   double rear_clearance_{2.0};
 };
 
+// ============================================================================
+// Traffic-Aware Condition Nodes
+// ============================================================================
+
+// Forward declare the TrafficState message
+} // namespace navigation_2025
+
+#include <otagg_vision_interfaces/msg/traffic_state.hpp>
+
+namespace navigation_2025 {
+
+/**
+ * @brief Base class for traffic state condition nodes
+ */
+class TrafficStateCondition : public BT::ConditionNode {
+protected:
+  TrafficStateCondition(const std::string &name,
+                        const BT::NodeConfiguration &config)
+      : BT::ConditionNode(name, config) {
+    node_ = config.blackboard->get<rclcpp::Node::SharedPtr>("node");
+
+    state_sub_ = node_->create_subscription<otagg_vision_interfaces::msg::TrafficState>(
+        "/traffic_state", 10,
+        [this](const otagg_vision_interfaces::msg::TrafficState::SharedPtr msg) {
+          std::lock_guard<std::mutex> lock(mutex_);
+          latest_state_ = *msg;
+          has_state_ = true;
+        });
+  }
+
+  rclcpp::Node::SharedPtr node_;
+  rclcpp::Subscription<otagg_vision_interfaces::msg::TrafficState>::SharedPtr state_sub_;
+  otagg_vision_interfaces::msg::TrafficState latest_state_;
+  std::mutex mutex_;
+  bool has_state_{false};
+};
+
+/**
+ * @brief Returns SUCCESS when red light detected within distance threshold
+ */
+class IsRedLightDetected : public TrafficStateCondition {
+public:
+  IsRedLightDetected(const std::string &name, const BT::NodeConfiguration &config)
+      : TrafficStateCondition(name, config) {
+    getInput("distance_threshold", distance_threshold_);
+  }
+
+  static BT::PortsList providedPorts() {
+    return {
+        BT::InputPort<double>("distance_threshold", 20.0, "Max distance to consider (m)")};
+  }
+
+  BT::NodeStatus tick() override {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (!has_state_) {
+      return BT::NodeStatus::FAILURE;
+    }
+
+    // Check if red light and within distance
+    if (latest_state_.traffic_light_state == 3 &&  // RED
+        latest_state_.traffic_light_distance > 0 &&
+        latest_state_.traffic_light_distance < distance_threshold_) {
+      RCLCPP_INFO(node_->get_logger(), "Red light detected at %.1fm",
+                  latest_state_.traffic_light_distance);
+      return BT::NodeStatus::SUCCESS;
+    }
+
+    return BT::NodeStatus::FAILURE;
+  }
+
+private:
+  double distance_threshold_{20.0};
+};
+
+/**
+ * @brief Returns SUCCESS when yellow light detected within distance threshold
+ */
+class IsYellowLightDetected : public TrafficStateCondition {
+public:
+  IsYellowLightDetected(const std::string &name, const BT::NodeConfiguration &config)
+      : TrafficStateCondition(name, config) {
+    getInput("distance_threshold", distance_threshold_);
+  }
+
+  static BT::PortsList providedPorts() {
+    return {
+        BT::InputPort<double>("distance_threshold", 20.0, "Max distance to consider (m)")};
+  }
+
+  BT::NodeStatus tick() override {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (!has_state_) {
+      return BT::NodeStatus::FAILURE;
+    }
+
+    if (latest_state_.traffic_light_state == 2 &&  // YELLOW
+        latest_state_.traffic_light_distance > 0 &&
+        latest_state_.traffic_light_distance < distance_threshold_) {
+      return BT::NodeStatus::SUCCESS;
+    }
+
+    return BT::NodeStatus::FAILURE;
+  }
+
+private:
+  double distance_threshold_{20.0};
+};
+
+/**
+ * @brief Returns SUCCESS when stop sign detected within distance threshold
+ */
+class IsStopSignDetected : public TrafficStateCondition {
+public:
+  IsStopSignDetected(const std::string &name, const BT::NodeConfiguration &config)
+      : TrafficStateCondition(name, config) {
+    getInput("distance_threshold", distance_threshold_);
+  }
+
+  static BT::PortsList providedPorts() {
+    return {
+        BT::InputPort<double>("distance_threshold", 10.0, "Max distance to consider (m)")};
+  }
+
+  BT::NodeStatus tick() override {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (!has_state_) {
+      return BT::NodeStatus::FAILURE;
+    }
+
+    if (latest_state_.stop_sign_detected &&
+        latest_state_.stop_sign_distance > 0 &&
+        latest_state_.stop_sign_distance < distance_threshold_) {
+      RCLCPP_INFO(node_->get_logger(), "Stop sign detected at %.1fm",
+                  latest_state_.stop_sign_distance);
+      return BT::NodeStatus::SUCCESS;
+    }
+
+    return BT::NodeStatus::FAILURE;
+  }
+
+private:
+  double distance_threshold_{10.0};
+};
+
+/**
+ * @brief Returns SUCCESS when specified turn is restricted (no_left_turn or no_right_turn)
+ */
+class IsTurnRestricted : public TrafficStateCondition {
+public:
+  IsTurnRestricted(const std::string &name, const BT::NodeConfiguration &config)
+      : TrafficStateCondition(name, config) {
+    getInput("direction", direction_);
+  }
+
+  static BT::PortsList providedPorts() {
+    return {
+        BT::InputPort<std::string>("direction", "left", "Turn direction to check: 'left' or 'right'")};
+  }
+
+  BT::NodeStatus tick() override {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (!has_state_) {
+      return BT::NodeStatus::FAILURE;
+    }
+
+    if (direction_ == "left" && latest_state_.no_left_turn) {
+      return BT::NodeStatus::SUCCESS;
+    }
+    if (direction_ == "right" && latest_state_.no_right_turn) {
+      return BT::NodeStatus::SUCCESS;
+    }
+    if (latest_state_.no_entry || latest_state_.road_closed) {
+      return BT::NodeStatus::SUCCESS;
+    }
+
+    return BT::NodeStatus::FAILURE;
+  }
+
+private:
+  std::string direction_{"left"};
+};
+
+/**
+ * @brief Returns SUCCESS when bus stop detected within distance threshold
+ */
+class IsBusStopDetected : public TrafficStateCondition {
+public:
+  IsBusStopDetected(const std::string &name, const BT::NodeConfiguration &config)
+      : TrafficStateCondition(name, config) {
+    getInput("distance_threshold", distance_threshold_);
+  }
+
+  static BT::PortsList providedPorts() {
+    return {
+        BT::InputPort<double>("distance_threshold", 15.0, "Max distance to consider (m)")};
+  }
+
+  BT::NodeStatus tick() override {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (!has_state_) {
+      return BT::NodeStatus::FAILURE;
+    }
+
+    if (latest_state_.bus_stop_detected &&
+        latest_state_.bus_stop_distance > 0 &&
+        latest_state_.bus_stop_distance < distance_threshold_) {
+      RCLCPP_INFO(node_->get_logger(), "Bus stop detected at %.1fm",
+                  latest_state_.bus_stop_distance);
+      return BT::NodeStatus::SUCCESS;
+    }
+
+    return BT::NodeStatus::FAILURE;
+  }
+
+private:
+  double distance_threshold_{15.0};
+};
+
+/**
+ * @brief Returns SUCCESS when a speed limit is active (non-zero)
+ */
+class IsSpeedLimitActive : public TrafficStateCondition {
+public:
+  IsSpeedLimitActive(const std::string &name, const BT::NodeConfiguration &config)
+      : TrafficStateCondition(name, config) {}
+
+  static BT::PortsList providedPorts() {
+    return {
+        BT::OutputPort<uint8_t>("speed_limit", "Detected speed limit in km/h")};
+  }
+
+  BT::NodeStatus tick() override {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (!has_state_) {
+      return BT::NodeStatus::FAILURE;
+    }
+
+    if (latest_state_.speed_limit_kmh > 0) {
+      setOutput("speed_limit", latest_state_.speed_limit_kmh);
+      return BT::NodeStatus::SUCCESS;
+    }
+
+    return BT::NodeStatus::FAILURE;
+  }
+};
+
+/**
+ * @brief Returns SUCCESS when traffic light is green (for WaitForGreenLight use)
+ */
+class IsGreenLightDetected : public TrafficStateCondition {
+public:
+  IsGreenLightDetected(const std::string &name, const BT::NodeConfiguration &config)
+      : TrafficStateCondition(name, config) {}
+
+  static BT::PortsList providedPorts() { return {}; }
+
+  BT::NodeStatus tick() override {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (!has_state_) {
+      return BT::NodeStatus::FAILURE;
+    }
+
+    if (latest_state_.traffic_light_state == 1) {  // GREEN
+      RCLCPP_INFO(node_->get_logger(), "Green light detected!");
+      return BT::NodeStatus::SUCCESS;
+    }
+
+    return BT::NodeStatus::FAILURE;
+  }
+};
+
 } // namespace navigation_2025
 
 #endif // NAVIGATION_2025__BT_CUSTOM_NODES_HPP_
+

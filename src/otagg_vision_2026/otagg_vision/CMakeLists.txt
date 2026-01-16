@@ -17,6 +17,9 @@ install(
     scripts/camera_node.py
     scripts/yolov12_node.py
     scripts/yolopv2_node.py
+    scripts/traffic_state_manager_node.py
+    scripts/velocity_override_node.py
+    scripts/bus_stop_loop_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

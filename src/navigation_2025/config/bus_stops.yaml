@@ -1,0 +1,39 @@
+# Bus Stop Locations for Teknofest Map
+# These coordinates define the docking positions for PUDO operations
+
+bus_stops:
+  - id: "stop_1"
+    dock_pose:
+      position:
+        x: 48.365
+        y: -55.317
+        z: 0.0
+      orientation:
+        x: 0.0
+        y: 0.0
+        z: 0.112
+        w: 0.994
+
+  - id: "stop_2"
+    dock_pose:
+      position:
+        x: 68.550
+        y: -34.092
+        z: 0.0
+      orientation:
+        x: 0.0
+        y: 0.0
+        z: 0.772
+        w: 0.635
+
+  - id: "stop_3"
+    dock_pose:
+      position:
+        x: 31.629
+        y: -18.040
+        z: 0.0
+      orientation:
+        x: 0.0
+        y: 0.0
+        z: -0.995
+        w: 0.096

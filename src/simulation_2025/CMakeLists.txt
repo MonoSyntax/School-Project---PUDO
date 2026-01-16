@@ -14,7 +14,7 @@ install(
 )
 
 install(
-  PROGRAMS scripts/traffic_light.py scripts/game_pad.py scripts/cmd_vel_publisher.py
+  PROGRAMS scripts/traffic_light.py scripts/game_pad.py scripts/cmd_vel_publisher.py scripts/gta_controller.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -57,6 +57,78 @@ def generate_launch_description():
                 arguments=['-d', rviz_config_file],
                 output='screen'
     )
+    
+    # Traffic Sign Detection Node
+    yolo_node = TimerAction(
+        period=15.0,
+        actions=[
+            Node(
+                package='otagg_vision',
+                executable='yolov12_node.py',
+                name='yolo_detector',
+                output='screen',
+                parameters=[{'use_sim_time': True}]
+            )
+        ]
+    )
+    
+    # Traffic State Manager Node
+    traffic_state_manager = TimerAction(
+        period=16.0,
+        actions=[
+            Node(
+                package='otagg_vision',
+                executable='traffic_state_manager_node.py',
+                name='traffic_state_manager',
+                output='screen',
+                parameters=[{'use_sim_time': True}]
+            )
+        ]
+    )
+    
+    # Velocity Override Node - gates cmd_vel based on traffic state
+    velocity_override = TimerAction(
+        period=17.0,
+        actions=[
+            Node(
+                package='otagg_vision',
+                executable='velocity_override_node.py',
+                name='velocity_override',
+                output='screen',
+                parameters=[{
+                    'use_sim_time': True,
+                    'red_light_stop_distance': 5.0,
+                    'red_light_approach_distance': 20.0,
+                    'stop_sign_stop_distance': 3.0,
+                    'stop_sign_approach_distance': 10.0,
+                    'stop_sign_wait_duration': 3.0,
+                    'pudo_approach_distance': 15.0,
+                    'pudo_wait_duration': 10.0,
+                }],
+                remappings=[
+                    # Nav2 publishes to cmd_vel, we remap to cmd_vel_nav
+                    # so velocity_override can intercept
+                ]
+            )
+        ]
+    )
+    
+    # Bus Stop Loop Node - navigates through stops continuously
+    bus_stop_loop = TimerAction(
+        period=25.0,  # Start after navigation is ready
+        actions=[
+            Node(
+                package='otagg_vision',
+                executable='bus_stop_loop_node.py',
+                name='bus_stop_loop',
+                output='screen',
+                parameters=[{
+                    'use_sim_time': True,
+                    'loop_delay_sec': 2.0,
+                }]
+            )
+        ]
+    )
    
     ld = LaunchDescription()
 
@@ -65,5 +137,11 @@ def generate_launch_description():
     ld.add_action(localization)
     ld.add_action(navigation)
     ld.add_action(rviz2)
+    ld.add_action(yolo_node)
+    ld.add_action(traffic_state_manager)
+    ld.add_action(velocity_override)
+    ld.add_action(bus_stop_loop)
     
     return ld
+
+

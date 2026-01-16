@@ -139,10 +139,10 @@ controller_server:
       stateful: True  # Durumlu kontrol - hedef kontrol durumunu sakla
     FollowPath:  # Yol takip kontrolör ayarları
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"  # Düzenlenmiş saf takip kontrolörü
-      desired_linear_vel: 2.0  # Daha hızlı hız
-      lookahead_dist: 1.5
-      min_lookahead_dist: 0.7
-      max_lookahead_dist: 2.5
+      desired_linear_vel: 4.0  # Increased for faster navigation
+      lookahead_dist: 2.5      # Increased for higher speed
+      min_lookahead_dist: 1.0
+      max_lookahead_dist: 4.0
       lookahead_time: 1.5
       rotate_to_heading_angular_vel: 1.2
       transform_tolerance: 0.1
@@ -153,8 +153,8 @@ controller_server:
       max_allowed_time_to_collision_up_to_carrot: 1.0
       use_regulated_linear_velocity_scaling: true
       use_cost_regulated_linear_velocity_scaling: true
-      regulated_linear_scaling_min_radius: 0.7
-      regulated_linear_scaling_min_speed: 0.5
+      regulated_linear_scaling_min_radius: 1.0
+      regulated_linear_scaling_min_speed: 1.0
       use_rotate_to_heading: true
       rotate_to_heading_min_angle: 0.7
       max_angular_accel: 3.0

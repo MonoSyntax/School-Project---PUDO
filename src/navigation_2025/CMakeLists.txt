@@ -18,6 +18,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(behaviortree_cpp_v3 REQUIRED)
+find_package(otagg_vision_interfaces REQUIRED)
 
 # Include directories
 include_directories(include)
@@ -34,6 +35,7 @@ ament_target_dependencies(bt_custom_nodes_plugin
   geometry_msgs
   tf2_ros
   behaviortree_cpp_v3
+  otagg_vision_interfaces
 )
 target_compile_definitions(bt_custom_nodes_plugin PRIVATE BT_PLUGIN_EXPORT)
 

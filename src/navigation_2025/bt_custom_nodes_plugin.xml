@@ -1,4 +1,5 @@
 <library path="bt_custom_nodes_plugin">
+  <!-- Original Ackermann Recovery Nodes -->
   <class name="DetectOscillation" 
          type="navigation_2025::DetectOscillation" 
          base_class_type="BT::ConditionNode">
@@ -27,5 +28,48 @@
          type="navigation_2025::HasClearanceForManeuver" 
          base_class_type="BT::ConditionNode">
     <description>Checks if there's enough space for maneuver</description>
+  </class>
+  
+  <!-- Traffic-Aware Condition Nodes -->
+  <class name="IsRedLightDetected" 
+         type="navigation_2025::IsRedLightDetected" 
+         base_class_type="BT::ConditionNode">
+    <description>Returns SUCCESS when red light detected within distance</description>
+  </class>
+  
+  <class name="IsYellowLightDetected" 
+         type="navigation_2025::IsYellowLightDetected" 
+         base_class_type="BT::ConditionNode">
+    <description>Returns SUCCESS when yellow light detected within distance</description>
+  </class>
+  
+  <class name="IsGreenLightDetected" 
+         type="navigation_2025::IsGreenLightDetected" 
+         base_class_type="BT::ConditionNode">
+    <description>Returns SUCCESS when green light detected</description>
+  </class>
+  
+  <class name="IsStopSignDetected" 
+         type="navigation_2025::IsStopSignDetected" 
+         base_class_type="BT::ConditionNode">
+    <description>Returns SUCCESS when stop sign detected within distance</description>
+  </class>
+  
+  <class name="IsTurnRestricted" 
+         type="navigation_2025::IsTurnRestricted" 
+         base_class_type="BT::ConditionNode">
+    <description>Returns SUCCESS when specified turn direction is restricted</description>
+  </class>
+  
+  <class name="IsBusStopDetected" 
+         type="navigation_2025::IsBusStopDetected" 
+         base_class_type="BT::ConditionNode">
+    <description>Returns SUCCESS when bus stop detected within distance</description>
+  </class>
+  
+  <class name="IsSpeedLimitActive" 
+         type="navigation_2025::IsSpeedLimitActive" 
+         base_class_type="BT::ConditionNode">
+    <description>Returns SUCCESS when a speed limit sign is active</description>
   </class>
 </library>
