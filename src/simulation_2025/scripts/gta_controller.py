@@ -1,52 +1,35 @@
 #!/usr/bin/env python3
 """
-OTAGG Car Controller with Navigation Commands
-==============================================
+OTAGG Car Controller
+====================
 Pygame-based controller for Ackermann steering vehicle.
 
 Controls:
   W/S or ↑/↓: Throttle/Brake
   A/D or ←/→: Steer
   SPACE: Handbrake
-  1-5: Navigation Commands
+  P: Take Photo
+  T: Toggle Camera Topic (Raw/Compressed)
   R: Reset
   Q/ESC: Quit
-
-NOTE: Command definitions MUST be kept in sync with:
-  otagg_vision/scripts/nav_commands.py (source of truth)
 """
 
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
-from std_msgs.msg import Int32
+from sensor_msgs.msg import Image, CompressedImage
 import math
+import os
 import time
+import cv2
+import numpy as np
+from cv_bridge import CvBridge
 
 try:
     import pygame
 except ImportError:
     print("Error: Pygame not installed. Run: pip install pygame")
     exit(1)
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# NAVIGATION COMMANDS - Keep in sync with otagg_vision/scripts/nav_commands.py
-# ═══════════════════════════════════════════════════════════════════════════════
-NAV_COMMANDS = {
-    0: {'name': 'FOLLOW_LANE', 'short': 'FLW', 'color': (60, 255, 130)},
-    1: {'name': 'TURN_LEFT',   'short': 'TL',  'color': (255, 230, 60)},
-    2: {'name': 'TURN_RIGHT',  'short': 'TR',  'color': (255, 180, 60)},
-    3: {'name': 'LANE_LEFT',   'short': 'LL',  'color': (0, 200, 255)},
-    4: {'name': 'LANE_RIGHT',  'short': 'LR',  'color': (180, 100, 255)},
-    5: {'name': 'DOCK_STOP',   'short': 'DST', 'color': (255, 100, 100)},
-    6: {'name': 'MERGE_ROAD',  'short': 'MRG', 'color': (100, 255, 200)},
-    7: {'name': 'GO_MIDDLE',   'short': 'MID', 'color': (255, 200, 100)},
-}
-NUM_COMMANDS = len(NAV_COMMANDS)
-COMMAND_KEYS = [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, 
-                pygame.K_6, pygame.K_7, pygame.K_8]
-# ═══════════════════════════════════════════════════════════════════════════════
 
 
 # Colors
@@ -86,9 +69,18 @@ class OtaggController(Node):
         super().__init__('otagg_controller')
         
         self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
-        self.nav_cmd_pub = self.create_publisher(Int32, '/nav_command', 10)
         
-        self.wheelbase = 1.75
+        # Camera Subscriptions
+        self.bridge = CvBridge()
+        self.latest_image = None
+        self.camera_topics = ['/camera', '/camera_compressed']
+        self.current_topic_idx = 0
+        self.img_sub = None
+        self._setup_subscriber()
+        
+        self.save_path = "Training Folder/data/images"
+        os.makedirs(self.save_path, exist_ok=True)
+        
         self.max_speed = 8.0
         self.max_reverse = 4.0
         self.max_yaw_rate = 1.2
@@ -101,16 +93,15 @@ class OtaggController(Node):
         self.steer_rate = 1.5
         
         self.gear = 'N'
-        self.current_command = 0
-        self.start_time = time.time()
-        self.max_speed_reached = 0.0
-        self.distance = 0.0
+        self.status_msg = ""
+        self.status_color = WHITE
+        self.status_time = 0
         
         pygame.init()
         pygame.display.set_caption("OTAGG Control")
         
         self.width = 700
-        self.height = 480
+        self.height = 400
         self.screen = pygame.display.set_mode((self.width, self.height))
         self.clock = pygame.time.Clock()
         
@@ -120,7 +111,61 @@ class OtaggController(Node):
         self.font_xl = pygame.font.Font(None, 80)
         
         self.running = True
-        self.get_logger().info("OTAGG Controller started. Keys 1-5 for nav commands.")
+        self.get_logger().info(f"OTAGG Controller started. Current topic: {self.camera_topics[self.current_topic_idx]}")
+
+    def _setup_subscriber(self):
+        if self.img_sub:
+            self.destroy_subscription(self.img_sub)
+        
+        topic = self.camera_topics[self.current_topic_idx]
+        if 'compressed' in topic:
+            self.img_sub = self.create_subscription(
+                CompressedImage, topic, self.compressed_image_callback, 10)
+        else:
+            self.img_sub = self.create_subscription(
+                Image, topic, self.image_callback, 10)
+        
+        self.get_logger().info(f"Subscribed to {topic}")
+
+    def toggle_camera(self):
+        self.current_topic_idx = (self.current_topic_idx + 1) % len(self.camera_topics)
+        self._setup_subscriber()
+        self.set_status(f"Topic: {self.camera_topics[self.current_topic_idx]}", CYAN)
+
+    def image_callback(self, msg):
+        try:
+            self.latest_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+        except Exception as e:
+            self.get_logger().error(f"Image conversion error: {e}")
+
+    def compressed_image_callback(self, msg):
+        try:
+            np_arr = np.frombuffer(msg.data, np.uint8)
+            self.latest_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        except Exception as e:
+            self.get_logger().error(f"Compressed image conversion error: {e}")
+
+    def take_photo(self):
+        if self.latest_image is None:
+            self.set_status("No camera data!", RED)
+            return
+        
+        timestamp = int(time.time() * 1000)
+        filename = f"capture_{timestamp}.jpg"
+        filepath = os.path.join(self.save_path, filename)
+        
+        try:
+            cv2.imwrite(filepath, self.latest_image)
+            self.set_status(f"Saved: {filename}", GREEN)
+            self.get_logger().info(f"Photo saved to {filepath}")
+        except Exception as e:
+            self.set_status("Save failed!", RED)
+            self.get_logger().error(f"Failed to save photo: {e}")
+
+    def set_status(self, msg, color):
+        self.status_msg = msg
+        self.status_color = color
+        self.status_time = time.time()
 
     def run(self):
         while self.running and rclpy.ok():
@@ -130,7 +175,10 @@ class OtaggController(Node):
                 if event.type == pygame.QUIT:
                     self.running = False
                 elif event.type == pygame.KEYDOWN:
-                    self._handle_command_key(event.key)
+                    if event.key == pygame.K_p:
+                        self.take_photo()
+                    elif event.key == pygame.K_t:
+                        self.toggle_camera()
             
             keys = pygame.key.get_pressed()
             if keys[pygame.K_ESCAPE] or keys[pygame.K_q]:
@@ -139,23 +187,11 @@ class OtaggController(Node):
             self.process_input(keys, dt)
             self.update_smooth()
             self.publish_cmd()
-            self.update_stats(dt)
             self.draw()
             
             rclpy.spin_once(self, timeout_sec=0)
         
         self.cleanup()
-
-    def _handle_command_key(self, key):
-        for i, cmd_key in enumerate(COMMAND_KEYS):
-            if key == cmd_key and i < NUM_COMMANDS:
-                if self.current_command != i:
-                    self.current_command = i
-                    self.get_logger().info(f"Command: [{i+1}] {NAV_COMMANDS[i]['name']}")
-                    msg = Int32()
-                    msg.data = i
-                    self.nav_cmd_pub.publish(msg)
-                break
 
     def process_input(self, keys, dt):
         if keys[pygame.K_r]:
@@ -232,12 +268,6 @@ class OtaggController(Node):
         msg.angular.z = float(self.steering.value)
         self.cmd_pub.publish(msg)
 
-    def update_stats(self, dt):
-        spd = abs(self.speed.value)
-        if spd > self.max_speed_reached:
-            self.max_speed_reached = spd
-        self.distance += spd * dt
-
     def draw(self):
         self.screen.fill(BLACK)
         
@@ -246,12 +276,19 @@ class OtaggController(Node):
         title = self.font_md.render("◈ OTAGG CONTROL ◈", True, CYAN)
         self.screen.blit(title, (self.width//2 - title.get_width()//2, 10))
         
-        self._draw_speed_panel(25, 55, 280, 165)
-        self._draw_steering_panel(320, 55, 170, 165)
-        self._draw_inputs_panel(505, 55, 170, 165)
-        self._draw_command_panel(25, 230, 650, 70)
-        self._draw_telemetry(25, 310, 650, 65)
+        self._draw_speed_panel(25, 65, 280, 165)
+        self._draw_steering_panel(320, 65, 170, 165)
+        self._draw_inputs_panel(505, 65, 170, 165)
         self._draw_status_bar()
+        
+        # Display Topic Info
+        topic_text = f"Topic: {self.camera_topics[self.current_topic_idx]}"
+        topic_surf = self.font_sm.render(topic_text, True, LIGHT)
+        self.screen.blit(topic_surf, (25, 240))
+        
+        if time.time() - self.status_time < 3.0:
+            status = self.font_md.render(self.status_msg, True, self.status_color)
+            self.screen.blit(status, (self.width//2 - status.get_width()//2, 280))
         
         pygame.display.flip()
 
@@ -323,56 +360,12 @@ class OtaggController(Node):
         pygame.draw.rect(self.screen, sc, (sx-5, sy+70, 100, 22), border_radius=4)
         self.screen.blit(self.font_sm.render("BRAKE", True, BLACK if space_pressed else LIGHT), (sx+22, sy+73))
 
-    def _draw_command_panel(self, x, y, w, h):
-        cmd_color = NAV_COMMANDS[self.current_command]['color']
-        pygame.draw.rect(self.screen, DARK, (x, y, w, h), border_radius=8)
-        pygame.draw.rect(self.screen, cmd_color, (x, y, w, h), 2, border_radius=8)
-        
-        self.screen.blit(self.font_sm.render("NAV COMMAND", True, LIGHT), (x+10, y+8))
-        
-        btn_w, btn_h = 75, 36
-        btn_y = y + 27
-        btn_x_start = x + 10
-        
-        for i in range(NUM_COMMANDS):
-            btn_x = btn_x_start + i * (btn_w + 4)
-            is_active = (i == self.current_command)
-            color = NAV_COMMANDS[i]['color'] if is_active else MID
-            pygame.draw.rect(self.screen, color, (btn_x, btn_y, btn_w, btn_h), border_radius=5)
-            
-            key_txt = self.font_sm.render(f"{i+1}", True, BLACK if is_active else LIGHT)
-            self.screen.blit(key_txt, (btn_x + 3, btn_y + 2))
-            
-            txt_color = BLACK if is_active else LIGHT
-            cmd_txt = self.font_sm.render(NAV_COMMANDS[i]['short'], True, txt_color)
-            self.screen.blit(cmd_txt, (btn_x + btn_w//2 - cmd_txt.get_width()//2 + 5, btn_y + 10))
-
-    def _draw_telemetry(self, x, y, w, h):
-        pygame.draw.rect(self.screen, DARK, (x, y, w, h), border_radius=8)
-        pygame.draw.rect(self.screen, GREEN, (x, y, w, h), 2, border_radius=8)
-        
-        self.screen.blit(self.font_sm.render("TELEMETRY", True, LIGHT), (x+10, y+8))
-        
-        elapsed = time.time() - self.start_time
-        stats = [
-            ("TIME", f"{int(elapsed//60):02d}:{int(elapsed%60):02d}"),
-            ("MAX", f"{self.max_speed_reached*3.6:.0f} km/h"),
-            ("DIST", f"{self.distance:.0f} m"),
-            ("CMD", NAV_COMMANDS[self.current_command]['name']),
-        ]
-        
-        ox = 15
-        for name, val in stats:
-            self.screen.blit(self.font_sm.render(name, True, LIGHT), (x + ox, y + 25))
-            self.screen.blit(self.font_md.render(val, True, WHITE), (x + ox, y + 38))
-            ox += 165
-
     def _draw_status_bar(self):
         pygame.draw.rect(self.screen, DARK, (0, self.height - 35, self.width, 35))
         pygame.draw.line(self.screen, CYAN, (0, self.height - 35), (self.width, self.height - 35), 1)
         
-        txt = "W/S: Speed  •  A/D: Steer  •  SPACE: Brake  •  1-8: Commands  •  Q: Quit"
-        self.screen.blit(self.font_sm.render(txt, True, LIGHT), (self.width//2 - 270, self.height - 25))
+        txt = "W/S/A/D: Move  •  SPACE: Brake  •  P: Photo  •  T: Toggle Cam  •  Q: Quit"
+        self.screen.blit(self.font_sm.render(txt, True, LIGHT), (self.width//2 - 300, self.height - 25))
         self.screen.blit(self.font_sm.render("● ROS2", True, GREEN), (15, self.height - 25))
 
     def cleanup(self):

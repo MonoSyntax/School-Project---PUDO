@@ -20,4 +20,7 @@ __pycache__/
 *~
 .cache
 
-Sign dataset/
+Training Folder/dataset/*
+!Training Folder/dataset/create_validation_split.py
+Training Folder/data
+logs/
