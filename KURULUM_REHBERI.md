@@ -12,7 +12,10 @@ Bu döküman, OTAGG otonom araç projesinin (Teknofest 2025/2026) kurulumu ve ya
 4. [ros_gz Köprüsü Kurulumu](#ros_gz-köprüsü-kurulumu)
 5. [Python Bağımlılıkları](#python-bağımlılıkları)
 6. [Sistemi Çalıştırma](#sistemi-çalıştırma)
-7. [Sorun Giderme](#sorun-giderme)
+7. [Sistem Mimarisi ve Çalışma Mantığı](#sistem-mimarisi-ve-çalışma-mantığı)
+8. [YOLO Model Eğitimi](#yolo-model-eğitimi)
+9. [Sorun Giderme](#sorun-giderme)
+10. [Proje Dosya Yapısı](#proje-dosya-yapısı)
 
 ## Ön Gereksinimler
 
@@ -290,6 +293,107 @@ ros2 run rviz2 rviz2
 
 ---
 
+---
+
+## Sistem Mimarisi ve Çalışma Mantığı
+
+Bu proje, otonom sürüş görevlerini yerine getirmek için üç ana modülden oluşur: Navigasyon, Görüntü İşleme ve Simülasyon.
+
+### 1. Navigasyon (Navigation 2)
+
+Navigasyon sistemi, ROS 2 Navigation Stack (Nav2) üzerine kuruludur.
+
+- **Lokalizasyon**: `robot_localization` paketi ile IMU ve Odometri verileri birleştirilir (EKF). `amcl` ile harita üzerindeki konum doğrulanır.
+- **Planlama**:
+  - **Global Planner**: Hedefe giden en kısa yolu hesaplar (Smac Planner vb.).
+  - **Local Planner**: Dinamik engellerden kaçınarak aracı sürer (MPPI veya TEB Controller).
+- **Costmap'ler**: Statik harita, lazer tarayıcıdan gelen engel verileri ve "yasaklı bölgeler" (Keepout zones) costmap katmanları olarak işlenir.
+
+### 2. Görüntü İşleme (Computer Vision)
+
+Görüntü işleme sistemi, trafik işaretlerini ve ışıklarını tespit etmek için YOLOv12 mimarisini kullanır.
+
+- **Node**: `otagg_vision/scripts/yolov12_node.py`
+- **Giriş**: Kamera görüntüleri (`/camera/image_raw`)
+- **Çıkış**: Tespit edilen nesneler, sınıfları ve konumları (Bounding Boxes).
+- **Entegrasyon**: Tespit edilen duraklar veya ışıklar, `traffic_state_manager` tarafından navigasyon sistemine hız limiti veya durma komutu olarak iletilir.
+
+### 3. Simülasyon (Gazebo Harmonic)
+
+Gerçek dünya testleri öncesinde algoritmaları doğrulamak için Gazebo Harmonic kullanılır.
+
+- **ros_gz_bridge**: Gazebo ve ROS 2 arasındaki iletişimi sağlar.
+  - Kamera görüntüleri ve Lidar verileri ROS 2'ye aktarılır.
+  - ROS 2'den gelen hız komutları (`cmd_vel`) Gazebo'daki araca iletilir.
+
+---
+
+## YOLO Model Eğitimi
+
+Proje kapsamında trafik işaretlerini tespit etmek için özel bir YOLOv12 modeli eğitilmektedir. Eğitim dosyaları ve araçları `Training Folder` dizininde bulunur.
+
+### Eğitim Klasör Yapısı
+
+```
+Training Folder/
+├── train_detection.py    # Ana eğitim scripti
+├── dataset/             
+│   ├── data.yaml        # Veriseti konfigürasyonu (Sınıflar ve yollar)
+│   ├── train/           # Eğitim görselleri
+│   └── val/             # Doğrulama görselleri
+└── traffic_yolo12/      # Eğitim çıktıları (Loglar, Ağırlıklar, Grafikler)
+```
+
+### Modeli Eğitme
+
+**1. Hazırlık:**
+
+- `dataset/data.yaml` dosyasının doğru görüntü yollarını içerdiğinden emin olun.
+- Gerekli Python kütüphanelerini kurun (bkz. [Python Bağımlılıkları](#python-bağımlılıkları)).
+
+**2. Eğitimi Başlatma:**
+Terminali açın ve eğitim klasörüne gidin:
+
+```bash
+cd ~/ros2_ws/Training\ Folder
+```
+
+- **Sıfırdan Eğitim (Fresh Training):**
+
+  ```bash
+  python3 train_detection.py
+  ```
+
+- **Kaldığı Yerden Devam Etme (Resume):**
+  Eğer eğitim yarıda kesildiyse son checkpoint'ten devam eder:
+
+  ```bash
+  python3 train_detection.py --resume
+  ```
+
+- **Hiperparametre Optimizasyonu (Tuning):**
+  En iyi öğrenme oranı ve parametreleri bulmak için:
+
+  ```bash
+  python3 train_detection.py --tune
+  ```
+
+**3. Eğitim Sonrası:**
+
+- Eğitim tamamlandığında en iyi model ağırlıkları şu konumda oluşturulur:
+  `~/ros2_ws/Training Folder/traffic_yolo12/<tarih_saat>/weights/best.pt`
+
+- **Modeli Kullanma:**
+  Yeni eğitilen modeli sisteme dahil etmek için, `.pt` dosyasını vision paketine kopyalayın:
+
+  ```bash
+  cp traffic_yolo12/<tarih_saat>/weights/best.pt ~/ros2_ws/src/otagg_vision_2026/otagg_vision/models/yolo_traffic_best.pt
+  ```
+
+  *(Not: Node içerisindeki model yolu ayarını güncellemeyi unutmayın!)*
+
+---
+
 ## Sorun Giderme
 
 ### Sık Karşılaşılan Hatalar
@@ -330,6 +434,16 @@ pip3 install 'numpy<2'
   source ~/pkgs_ws/install/setup.bash  # ros_gz
   source ~/ros2_ws/install/setup.bash  # workspace
   ```
+
+#### 3. Costmap yüklenme sorunu
+
+**Hata:**
+
+Eğer Rviz'de costmap haritası eksik ise, ve araç hareket etmiyorsa; costmap doğru yüklenmemiş olabilir.
+
+**Çözüm:**
+
+Simulasyonu yeniden başlatmak genellikle yeterli olacaktır.
 
 ## Ek Kaynaklar
 
