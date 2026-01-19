@@ -23,6 +23,12 @@ Bu döküman, OTAGG otonom araç projesinin (Teknofest 2025/2026) kurulumu ve ya
 - [Python 3.10.2 (22.04 varsayılan Python sürümü)](https://www.python.org/downloads/release/python-3102/)
 - NVIDIA CUDA destekli dGPU
 
+### 0. Bu repo'yu klonlayın
+
+```bash
+git clone https://github.com/MonoSyntax/School-Project---PUDO.git
+```
+
 ### 1. Sistem Güncellemesi
 
 - İlk önce tüm sistem paketlerinin güncel olduğundan emin olun.
