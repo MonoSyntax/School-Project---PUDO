@@ -26,7 +26,7 @@ class TrafficDetectionNode(Node):
     
     # Detection categories for color coding and alerts
     CATEGORIES = {
-        'traffic_light': ['kirmizi_isik', 'sari_isik', 'yesil_isik', 'kirmizi'],
+        'traffic_light': ['kirmizi','sari','yesil'],
         'critical_sign': ['dur', 'yol_ver', 'girisyok', 'parkyasak', 'soladonulmez'],
         'speed_limit': ['hiz_siniri_20', 'hiz_siniri_30', 'hiz_siniri_50', 
                        'hiz_siniri_60', 'hiz_siniri_70', 'hiz_siniri_80',

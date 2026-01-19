@@ -1,6 +1,5 @@
 ekf_filter_node:
     ros__parameters:
-        # FIXED CONFIGURATION - Based on debug results
         frequency: 30.0
         two_d_mode: true
         publish_acceleration: false
@@ -13,10 +12,10 @@ ekf_filter_node:
         
         transform_tolerance: 0.1
         
-        # PRIMARY SOURCE: Wheel Odometry - TRUST THIS COMPLETELY
+        # Wheel Odometry
         odom0: /odom
         odom0_config: [true,  true,  false,   # X, Y position from wheels
-                      false, false, true,     # ✅ YAW from wheels (NOT IMU!)
+                      false, false, true,     # YAW from wheels
                       true,  true,  false,    # X, Y velocities from wheels
                       false, false, false,    # NO angular velocities from odom
                       false, false, false]    # NO accelerations
@@ -25,18 +24,15 @@ ekf_filter_node:
         odom0_differential: false
         odom0_relative: false
         odom0_rejection_threshold: 5.0
+
         
-        # GPS DISABLED - It's giving wrong data (x:1.26 vs odom x:4.50)
-        # odom1: odometry/gps
-        # odom1_config: [false, false, false, ...]
-        
-        # IMU: ONLY use angular velocity (yaw rate), NOT orientation
+        # IMU
         imu0: /imu/data
         imu0_config: [false, false, false,    # NO position
-                     false, false, false,     # ❌ CRITICAL: DON'T use orientation (conflicts!)
+                     false, false, false,     
                      false, false, false,     # NO linear velocities
-                     false, false, true,      # ✅ ONLY yaw rate (angular_velocity.z)
-                     false, false, false]     # ❌ NO accelerations (causes drift)
+                     false, false, true,      # yaw rate (angular_velocity.z)
+                     false, false, false]     
         imu0_remove_gravitational_acceleration: true
         imu0_queue_size: 10
         imu0_nodelay: true
@@ -44,7 +40,6 @@ ekf_filter_node:
         imu0_relative: false
         imu0_rejection_threshold: 2.0
         
-        # Process noise - trust the model
         process_noise_covariance: [
             0.005, 0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,
             0.0,   0.005, 0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,

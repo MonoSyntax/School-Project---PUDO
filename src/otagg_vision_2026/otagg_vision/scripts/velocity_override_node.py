@@ -49,19 +49,24 @@ class VelocityOverrideNode(Node):
         # Parameters
         self.declare_parameter('red_light_stop_distance', 5.0)
         self.declare_parameter('red_light_approach_distance', 20.0)
+        self.declare_parameter('red_light_wait_duration', 10.0)  # New: Handle broken lights
         self.declare_parameter('stop_sign_stop_distance', 3.0)
         self.declare_parameter('stop_sign_approach_distance', 10.0)
-        self.declare_parameter('stop_sign_wait_duration', 3.0)
+        self.declare_parameter('stop_sign_wait_duration', 5.0)   # Updated: 5 seconds
+        self.declare_parameter('resume_cooldown_duration', 5.0)  # New: Time to ignore rules after stop
         
         self.red_stop_dist = self.get_parameter('red_light_stop_distance').value
         self.red_approach_dist = self.get_parameter('red_light_approach_distance').value
+        self.red_wait_dur = self.get_parameter('red_light_wait_duration').value
         self.stop_stop_dist = self.get_parameter('stop_sign_stop_distance').value
         self.stop_approach_dist = self.get_parameter('stop_sign_approach_distance').value
         self.stop_wait_dur = self.get_parameter('stop_sign_wait_duration').value
+        self.cooldown_dur = self.get_parameter('resume_cooldown_duration').value
         
         # State
         self.state = ControlState.NORMAL
         self.state_entry_time: Optional[Time] = None
+        self.cooldown_end_time: Optional[Time] = None  # New: Cooldown timer
         self.last_nav_cmd = Twist()
         self.current_speed = 0.0
         self.robot_x = 0.0
@@ -114,6 +119,21 @@ class VelocityOverrideNode(Node):
     def update(self):
         now = self.get_clock().now()
         
+        # Check cooldown (Priority 1)
+        # If we just finished waiting, ignore traffic rules for a few seconds to drive away
+        if self.cooldown_end_time:
+            if now < self.cooldown_end_time:
+                # In cooldown - pass through normal navigation
+                self.cmd_pub.publish(self.last_nav_cmd)
+                
+                # Debug
+                state_msg = String()
+                state_msg.data = f"COOLDOWN ({(self.cooldown_end_time - now).nanoseconds/1e9:.1f}s)"
+                self.state_pub.publish(state_msg)
+                return
+            else:
+                self.cooldown_end_time = None
+        
         # Check traffic state validity (1s timeout)
         valid = (
             self.traffic_state is not None and
@@ -154,7 +174,13 @@ class VelocityOverrideNode(Node):
         if self.state_entry_time is None:
             return 0.0
         return (self.get_clock().now() - self.state_entry_time).nanoseconds / 1e9
-    
+        
+    def _start_cooldown(self):
+        """Start cooldown period to ignore traffic rules temporarily."""
+        now = self.get_clock().now()
+        self.cooldown_end_time = now + rclpy.duration.Duration(seconds=self.cooldown_dur)
+        self.get_logger().info(f"Starting cooldown for {self.cooldown_dur}s (ignoring rules)")
+
     def _decel(self, current_dist: float, stop_dist: float) -> Twist:
         cmd = Twist()
         if current_dist <= stop_dist:
@@ -207,11 +233,22 @@ class VelocityOverrideNode(Node):
         return self._decel(ts.traffic_light_distance, self.red_stop_dist)
     
     def _red_wait(self, valid: bool) -> Twist:
+        # Check timer (Broken light handler)
+        wait_time = self._time_in_state()
+        if wait_time >= self.red_wait_dur:
+            self.get_logger().info(f"Red light timeout ({wait_time:.1f}s). Assuming broken/stuck. Resuming.")
+            self._start_cooldown()
+            self._transition(ControlState.NORMAL)
+            return self.last_nav_cmd
+            
         if not valid:
+            # If we lose detection, stay stopped for safety, or implement a separate timeout?
+            # For now, let's just hold position until valid data returns or timeout occurs.
             return Twist()
         
         if self.traffic_state.traffic_light_state == 1:  # GREEN
             self.get_logger().info("Green light! Resuming.")
+            self._start_cooldown() # Use cooldown to prevent immediate re-stop if it flickers
             self._transition(ControlState.NORMAL)
             return self.last_nav_cmd
         
@@ -236,12 +273,14 @@ class VelocityOverrideNode(Node):
             self.get_logger().info(f"Stop complete ({wait:.1f}s). Resuming.")
             self.stop_sign_handled = True
             self.stop_sign_pos = (self.robot_x, self.robot_y)
+            self._start_cooldown()
             self._transition(ControlState.STOP_SIGN_RESUME)
             return self.last_nav_cmd
         
         return Twist()
     
     def _stop_resume(self) -> Twist:
+        # This state might be redundant with cooldown, but kept for logic safety
         if self._time_in_state() > 0.5:
             self._transition(ControlState.NORMAL)
         return self.last_nav_cmd

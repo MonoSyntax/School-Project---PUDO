@@ -174,26 +174,26 @@ local_costmap:
     ros__parameters:
       use_sim_time: True  # Simülasyon zamanı kullan
 
-      update_frequency: 3.0  # Daha iyi performans için daha da azaltıldı - yerel maliyet haritası güncelleme frekansı
-      publish_frequency: 3.0  # Daha iyi performans için azaltıldı - yerel maliyet haritası yayın frekansı
-      global_frame: odom  # Global çerçeve - odometri koordinat sistemi
-      robot_base_frame: base_footprint  # Robot ana çerçevesi - robotun referans noktası
+      update_frequency: 3.0  # yerel maliyet haritası güncelleme frekansı
+      publish_frequency: 3.0  # yerel maliyet haritası yayın frekansı
+      global_frame: odom  # odometri koordinat sistemi
+      robot_base_frame: base_footprint  # robotun referans noktası
 
-      width: 80  # Artırıldı - local costmap daha geniş
-      height: 80  # Artırıldı - local costmap daha yüksek
-      resolution: 0.05  # Çözünürlük - her hücrenin metre cinsinden boyutu
-      rolling_window: True  # Kaydırılabilir pencere - robot hareket ettikçe harita kaydırılır
+      width: 80  # local costmap daha geniş
+      height: 80  # local costmap daha yüksek
+      resolution: 0.05  # her hücrenin metre cinsinden boyutu
+      rolling_window: True  # robot hareket ettikçe harita kaydırılır
       always_send_full_costmap: True  # Her zaman tam maliyet haritasını gönder
 
       # robot_radius: 0.23  # Robot yarıçapı - kullanılmıyor, footprint kullanılıyor
-      footprint: "[[-1.4, -0.8], [1.4, -0.8], [1.4, 0.8], [-1.4, 0.8]]"  # Doğru araç boyutu: 2.8x1.6m
+      footprint: "[[-1.4, -0.8], [1.4, -0.8], [1.4, 0.8], [-1.4, 0.8]]"  # araç boyutu: 2.8x1.6m
       footprint_padding: 0.1  # Padding
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       filters: ["keepout_filter", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True
-        inflation_radius: 1.5  # Azaltıldı - daha küçük mavi alan
+        inflation_radius: 1.5  # daha küçük mavi alan
         cost_scaling_factor: 3.0  # Maliyet ölçekleme
       obstacle_layer:  # Engel katmanı - sensörlerden gelen engel verileri
         plugin: "nav2_costmap_2d::ObstacleLayer"  # Engel katmanı eklentisi
