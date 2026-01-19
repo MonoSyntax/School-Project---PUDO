@@ -16,13 +16,21 @@ Bu döküman, OTAGG otonom araç projesinin (Teknofest 2025/2026) kurulumu ve ya
 
 ## Ön Gereksinimler
 
+- [Ubuntu 22.04 İşletim Sistemi (Performans açısından Dual Boot önerilir)](https://releases.ubuntu.com/22.04/)
+- [Python 3.10.2 (22.04 varsayılan Python sürümü)](https://www.python.org/downloads/release/python-3102/)
+- NVIDIA CUDA destekli dGPU
+
 ### 1. Sistem Güncellemesi
+
+- İlk önce tüm sistem paketlerinin güncel olduğundan emin olun.
 
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
 
 ### 2. Gerekli Araçların Kurulumu
+
+- ROS 2 için gerekli araçları kurun.
 
 ```bash
 sudo apt install -y \
@@ -45,7 +53,7 @@ sudo apt install -y \
 ### Adım 1: ROS 2 Apt Deposunu Ekleyin
 
 ```bash
-# UTF-8 locale ayarı
+# ROS 2 Humble only supports UTF-8 locale
 sudo apt update && sudo apt install locales
 sudo locale-gen en_US en_US.UTF-8
 sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
@@ -68,6 +76,8 @@ sudo apt install ros-humble-desktop -y
 ```
 
 ### Adım 3: Nav2 ve Ek Paketleri Kurun
+
+- Proje için gerekli ROS 2 paketlerini kurun.
 
 ```bash
 sudo apt install -y \
@@ -119,8 +129,7 @@ sudo apt install gz-harmonic -y
 
 ## ros_gz Köprüsü Kurulumu
 
-> [!WARNING]
-> **Kritik Adım!** ROS 2 Humble ve Gazebo Harmonic uyumluluğu için `ros_gz` paketinin **kaynak koddan derlenmesi** gerekmektedir. Binary paketler uyumlu değildir.
+> ROS 2 Humble ve Gazebo Harmonic uyumluluğu için `ros_gz` paketinin **kaynak koddan derlenmesi** gerekmektedir. Binary paketler uyumlu değildir.
 
 ### Adım 1: Ayrı Bir Workspace Oluşturun
 
@@ -136,6 +145,8 @@ git clone https://github.com/gazebosim/ros_gz.git -b humble
 ```
 
 ### Adım 3: Bağımlılıkları Kurun
+
+- Bu adım sırasında başka işlemler yapmayın.
 
 ```bash
 cd ~/pkgs_ws
@@ -164,17 +175,20 @@ source ~/.bashrc
 
 ### CUDA/GPU Desteği
 
-NVIDIA GPU'nuz varsa:
-
 ```bash
 # NVIDIA CUDA Toolkit (zaten kurulu değilse)
-# https://developer.nvidia.com/cuda-downloads adresinden indirin
-
-# PyTorch CUDA sürümü
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+# https://developer.nvidia.com/cuda-downloads adresinden indirin ve verilen adımları takip edin
+# Proje CUDA 13.1 sürümü ile hazırlanmıştır. Diğer sürümler ile uyumluluk garantisi yoktur.
 ```
 
+### PyTorch CUDA sürümü
+
+- Verilen adımları takip ederek sisteminize uyumlu olan PyTorch sürümünü kurun.
+[PyTorch](https://pytorch.org/get-started/locally/)
+
 ### Görüntü İşleme Bağımlılıkları
+
+- Görüntü işleme için gerekli olan bağımlılıkları kurun.
 
 ```bash
 pip3 install \
@@ -187,7 +201,7 @@ pip3 install \
 > [!IMPORTANT]
 > **NumPy Sürümü Kritik!** `cv_bridge` ile uyumluluk için NumPy **2.0'dan düşük** olmalıdır. Aksi takdirde şu hata alınır:
 >
-> ```
+> ```py
 > AttributeError: _ARRAY_API not found
 > ```
 
@@ -202,11 +216,11 @@ python3 -c "import numpy; print(numpy.__version__)"
 
 ### Repoyu klonlama
 
-git clone <OTAGG_REPO_URL> .
+git clone <https://github.com/MonoSyntax/School-Project---PUDO.git>>
 
 Workspace aşağıdaki paketleri içermelidir:
 
-```
+```md
 ros2_ws/src/
 ├── navigation_2025/        # Nav2 tabanlı otonom navigasyon
 ├── otagg_vision_2026/      # YOLO tabanlı görüntü işleme
@@ -264,10 +278,7 @@ ros2 launch navigation_2025 bringup.launch.py
 ### 3. Görüntü İşleme
 
 ```bash
-# Terminal 1: Kamera node'u
-ros2 run otagg_vision camera_node.py
-
-# Terminal 2: YOLO tespit node'u
+# YOLO trafik işaret tespit node'u
 ros2 run otagg_vision yolov12_node.py
 ```
 
@@ -287,7 +298,7 @@ ros2 run rviz2 rviz2
 
 **Hata:**
 
-```
+```py
 AttributeError: _ARRAY_API not found
 ```
 
@@ -304,7 +315,7 @@ pip3 install 'numpy<2'
 
 **Hata:**
 
-```
+```py
 [ERROR] [ros_gz_bridge]: Failed to create bridge
 ```
 
