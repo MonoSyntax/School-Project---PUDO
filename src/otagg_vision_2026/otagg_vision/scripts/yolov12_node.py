@@ -19,6 +19,7 @@ from ultralytics import YOLO
 from ament_index_python.packages import get_package_share_directory
 from collections import defaultdict
 import time
+from otagg_vision_interfaces.msg import TrafficSignArray, TrafficSignDetection
 
 
 class TrafficDetectionNode(Node):
@@ -26,14 +27,26 @@ class TrafficDetectionNode(Node):
     
     # Detection categories for color coding and alerts
     CATEGORIES = {
-        'traffic_light': ['kirmizi','sari','yesil'],
-        'critical_sign': ['dur', 'yol_ver', 'girisyok', 'parkyasak', 'soladonulmez'],
+        'traffic_light': ['kirmizi_isik', 'sari_isik', 'yesil_isik', 'kirmizi', 'red', 'yellow', 'green'],
+        'critical_sign': ['dur', 'yol_ver', 'girisyok', 'parkyasak', 'soladonulmez', 'stop_sign'],
         'speed_limit': ['hiz_siniri_20', 'hiz_siniri_30', 'hiz_siniri_50', 
                        'hiz_siniri_60', 'hiz_siniri_70', 'hiz_siniri_80',
                        'hiz_siniri_100', 'hiz_siniri_120'],
-        'pedestrian': ['insan'],
-        'vehicle': ['araba', 'kamyon', 'otobus', 'motor', 'bisiklet'],
+        'pedestrian': ['insan', 'person'],
+        'vehicle': ['araba', 'kamyon', 'otobus', 'motor', 'bisiklet', 'car', 'truck', 'bus'],
         'information_sign': ['park'],
+    }
+    
+    # Mapping to English for State Manager
+    CLASS_MAPPING = {
+        'kirmizi_isik': 'red',
+        'kirmizi': 'red',
+        'sari_isik': 'yellow',
+        'sari': 'yellow',
+        'yesil_isik': 'green',
+        'yesil': 'green',
+        'dur': 'stop_sign',
+        'stop': 'stop_sign'
     }
     
     # Colors (BGR format)
@@ -132,6 +145,7 @@ class TrafficDetectionNode(Node):
         
         # Publishers
         self.alert_pub = self.create_publisher(String, '/traffic/alerts', 10)
+        self.detections_pub = self.create_publisher(TrafficSignArray, '/traffic_signs', 10)
         self.image_pub = self.create_publisher(
             CompressedImage, 
             '/traffic/annotated/compressed', 
@@ -159,8 +173,8 @@ class TrafficDetectionNode(Node):
             self.fps = 1.0 / (time.time() - self.last_process_time) if self.last_process_time > 0 else 0
             self.last_process_time = current_time
             
-            # Process detections
-            self._handle_detections(detections)
+            # Process detections & Publish
+            self._handle_detections(detections, msg.header)
             
             # Visualize
             annotated = self._draw_detections(frame, detections, inference_time)
@@ -195,12 +209,21 @@ class TrafficDetectionNode(Node):
                 confidence = float(box.conf.cpu())
                 category = self._get_category(class_name)
                 
+                # Estimate distance (Simple heuristic based on box height)
+                # This needs calibration! For now assuming standard sign height ~0.5m
+                # f = 600px (focal length), H = 0.5m, h = box_height_px
+                # D = (f * H) / h
+                x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
+                h = y2 - y1
+                estimated_distance = (600 * 0.5) / h if h > 0 else -1.0
+                
                 det = {
                     'class_id': class_id,
                     'class_name': class_name,
                     'confidence': confidence,
                     'bbox': box.xyxy[0].cpu().numpy().astype(int),
-                    'category': category
+                    'category': category,
+                    'distance': estimated_distance
                 }
                 detections.append(det)        
         return detections
@@ -212,21 +235,44 @@ class TrafficDetectionNode(Node):
                 return category
         return 'default'
     
-    def _handle_detections(self, detections: list):
-        """Handle critical detections and alerts"""
+    def _handle_detections(self, detections: list, header):
+        """Handle critical detections, publish alerts and TrafficSignArray"""
+        
+        # Prepare TrafficSignArray
+        msg = TrafficSignArray()
+        msg.header = header
         
         for det in detections:
             name = det['class_name']
             category = det['category']
+            
+            # Map to English for state manager
+            mapped_name = self.CLASS_MAPPING.get(name, name)
+            
+            # Add to message
+            sign_msg = TrafficSignDetection()
+            sign_msg.header = header
+            sign_msg.sign_class = mapped_name
+            sign_msg.confidence = det['confidence']
+            sign_msg.estimated_distance = det['distance']
+            
+            # Set bbox (convert xyxy to center_x, center_y, width, height)
+            x1, y1, x2, y2 = det['bbox']
+            sign_msg.bbox_x = int((x1 + x2) / 2)
+            sign_msg.bbox_y = int((y1 + y2) / 2)
+            sign_msg.bbox_width = int(x2 - x1)
+            sign_msg.bbox_height = int(y2 - y1)
+            
+            msg.detections.append(sign_msg)
             
             # Track detection history
             self.detection_history[name] += 1
             
             # Critical alerts
             alert = None
-            if name == 'kirmizi_isik':
+            if mapped_name == 'red':
                 alert = "🔴 RED LIGHT - STOP!"
-            elif name == 'dur':
+            elif mapped_name == 'stop_sign':
                 alert = "🛑 STOP SIGN"
             elif name == 'yol_ver':
                 alert = "⚠️  YIELD"
@@ -237,12 +283,15 @@ class TrafficDetectionNode(Node):
             if alert:
                 current_time = time.time()
                 if current_time - self.last_alert_time[alert] > self.alert_throttle_duration:
-                    self.get_logger().warn(alert)
+                    self.get_logger().warn(f"{alert} (Dist: {det['distance']:.1f}m)")
                     self.last_alert_time[alert] = current_time
                     
-                msg = String()
-                msg.data = alert
-                self.alert_pub.publish(msg)
+                str_msg = String()
+                str_msg.data = alert
+                self.alert_pub.publish(str_msg)
+                
+        # Publish detections
+        self.detections_pub.publish(msg)
     
     def _draw_detections(
         self, 

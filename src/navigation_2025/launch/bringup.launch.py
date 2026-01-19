@@ -97,9 +97,10 @@ def generate_launch_description():
                 output='screen',
                 parameters=[{
                     'use_sim_time': True,
-                    'red_light_stop_distance': 5.0,
-                    'red_light_approach_distance': 20.0,
-                    'stop_sign_stop_distance': 3.0,
+                    'red_light_stop_distance': 12.0,
+                    'red_light_approach_distance': 15.0,
+                    'red_light_wait_duration': 10.0,
+                    'stop_sign_stop_distance': 5.0,
                     'stop_sign_approach_distance': 10.0,
                     'stop_sign_wait_duration': 3.0,
                 }]

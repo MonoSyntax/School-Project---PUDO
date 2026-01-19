@@ -48,12 +48,12 @@ class VelocityOverrideNode(Node):
         
         # Parameters
         self.declare_parameter('red_light_stop_distance', 5.0)
-        self.declare_parameter('red_light_approach_distance', 20.0)
-        self.declare_parameter('red_light_wait_duration', 10.0)  # New: Handle broken lights
+        self.declare_parameter('red_light_approach_distance', 10.0)
+        self.declare_parameter('red_light_wait_duration', 8.0)  # New: Handle broken lights
         self.declare_parameter('stop_sign_stop_distance', 3.0)
-        self.declare_parameter('stop_sign_approach_distance', 10.0)
+        self.declare_parameter('stop_sign_approach_distance', 5.0)
         self.declare_parameter('stop_sign_wait_duration', 5.0)   # Updated: 5 seconds
-        self.declare_parameter('resume_cooldown_duration', 5.0)  # New: Time to ignore rules after stop
+        self.declare_parameter('resume_cooldown_duration', 10.0)  # New: Time to ignore rules after stop
         
         self.red_stop_dist = self.get_parameter('red_light_stop_distance').value
         self.red_approach_dist = self.get_parameter('red_light_approach_distance').value
@@ -202,7 +202,9 @@ class VelocityOverrideNode(Node):
         
         # Check RED light
         if ts.traffic_light_state == 3:  # RED
+            self.get_logger().info(f"RED LIGHT SEEN: Dist {ts.traffic_light_distance:.2f}m (Threshold: {self.red_approach_dist}m)", throttle_duration_sec=1.0)
             if 0 < ts.traffic_light_distance < self.red_approach_dist:
+                self.get_logger().warn(f"🛑 RED LIGHT TRIGGER! Transitioning to DECEL. (Dist: {ts.traffic_light_distance:.2f}m)")
                 self._transition(ControlState.RED_LIGHT_DECEL)
                 return self._decel(ts.traffic_light_distance, self.red_stop_dist)
         
@@ -225,15 +227,25 @@ class VelocityOverrideNode(Node):
             self._transition(ControlState.NORMAL)
             return self.last_nav_cmd
         
-        # Reached stop distance
-        if ts.traffic_light_distance <= self.red_stop_dist:
+        # Reached stop distance (ensure valid positive distance)
+        if 0 < ts.traffic_light_distance <= self.red_stop_dist:
             self._transition(ControlState.RED_LIGHT_WAIT)
             return Twist()
         
+        # If we lost the light (distance -1) or are far away, what to do?
+        # If we are in DECEL and lost the light, maybe just continue creeping or hold?
+        # For safety, if we were deceling for a red light and it disappears, 
+        # we might want to stay cautious or assume it's still red.
+        if ts.traffic_light_distance <= 0:
+             # Lost detection while decelerating.
+             self.get_logger().warn("Lost red light tracking in DECEL. Resuming to avoid deadlock.")
+             self._transition(ControlState.NORMAL)
+             return self.last_nav_cmd
+
         return self._decel(ts.traffic_light_distance, self.red_stop_dist)
     
     def _red_wait(self, valid: bool) -> Twist:
-        # Check timer (Broken light handler)
+        # Check timer (Broken light handler) - PRIORITY 1
         wait_time = self._time_in_state()
         if wait_time >= self.red_wait_dur:
             self.get_logger().info(f"Red light timeout ({wait_time:.1f}s). Assuming broken/stuck. Resuming.")
@@ -242,13 +254,12 @@ class VelocityOverrideNode(Node):
             return self.last_nav_cmd
             
         if not valid:
-            # If we lose detection, stay stopped for safety, or implement a separate timeout?
-            # For now, let's just hold position until valid data returns or timeout occurs.
+            # If detection is lost, we keep waiting (counting down the timer)
             return Twist()
         
         if self.traffic_state.traffic_light_state == 1:  # GREEN
             self.get_logger().info("Green light! Resuming.")
-            self._start_cooldown() # Use cooldown to prevent immediate re-stop if it flickers
+            self._start_cooldown() 
             self._transition(ControlState.NORMAL)
             return self.last_nav_cmd
         
@@ -259,6 +270,11 @@ class VelocityOverrideNode(Node):
             return Twist()
         
         ts = self.traffic_state
+
+        if ts.stop_sign_distance <= 0:
+            self.get_logger().warn("Lost stop sign tracking in DECEL. Resuming.")
+            self._transition(ControlState.NORMAL)
+            return self.last_nav_cmd
         
         if ts.stop_sign_distance <= self.stop_stop_dist or self.current_speed < 0.1:
             self._transition(ControlState.STOP_SIGN_WAIT)

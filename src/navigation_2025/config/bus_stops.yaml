@@ -5,14 +5,14 @@ bus_stops:
   - id: "stop_1"
     dock_pose:
       position:
-        x: 48.365
-        y: -55.317
+        x: 47.2566
+        y: -53.9788
         z: 0.0
       orientation:
         x: 0.0
         y: 0.0
-        z: 0.112
-        w: 0.994
+        z: 0.124142
+        w: 1.0
 
   - id: "stop_2"
     dock_pose:

@@ -33,7 +33,7 @@ class BusStop:
 
 # Bus stops from user-provided coordinates
 BUS_STOPS = [
-    BusStop("stop_1", 48.365, -55.317, 0.0, 0.0, 0.0, 0.112, 0.994),
+    BusStop("stop_1", 47.2566, -53.9788, 0.0, 0.0, 0.0, 0.124142, 1.0),
     BusStop("stop_2", 68.550, -34.092, 0.0, 0.0, 0.0, 0.772, 0.635),
     BusStop("stop_3", 31.629, -18.040, 0.0, 0.0, 0.0, -0.995, 0.096),
 ]

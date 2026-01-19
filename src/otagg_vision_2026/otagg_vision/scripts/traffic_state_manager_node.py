@@ -91,7 +91,9 @@ class TrafficStateManagerNode(Node):
         
         for det in msg.detections:
             self.trackers[det.sign_class].add_detection(current_time, det.estimated_distance)
-        
+            if det.sign_class in ['red', 'yellow', 'green', 'stop_sign']:
+                 self.get_logger().debug(f"Added detection: {det.sign_class} at {det.estimated_distance:.2f}m")
+
         for tracker in self.trackers.values():
             tracker.prune_old(current_time)
         
@@ -128,7 +130,7 @@ class TrafficStateManagerNode(Node):
                 self.light_distance = -1.0
         
         if self.light_state != prev:
-            self.get_logger().info(f"Light: {prev.name} -> {self.light_state.name}")
+            self.get_logger().info(f"Light State Changed: {prev.name} -> {self.light_state.name} (Dist: {self.light_distance:.2f}m)")
     
     def publish_state(self):
         msg = TrafficState()
