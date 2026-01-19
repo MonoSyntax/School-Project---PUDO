@@ -25,7 +25,7 @@ class TestImagePublisher(Node):
         self.bridge = CvBridge()
         
         # Dataset path
-        dataset_path = "/home/berke/ros2_ws/Sign dataset/Turkey Road Sign.v1i.yolov12/valid/images"
+        dataset_path = "/home/berke/ros2_ws/Training Folder/dataset/valid/images"
         self.image_files = glob.glob(os.path.join(dataset_path, "*.jpg"))
         
         if not self.image_files:
