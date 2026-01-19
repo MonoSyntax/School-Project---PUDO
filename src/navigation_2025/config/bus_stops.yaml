@@ -1,5 +1,5 @@
 # Bus Stop Locations for Teknofest Map
-# These coordinates define the docking positions for PUDO operations
+# These coordinates define the waypoints for automatic bus route navigation
 
 bus_stops:
   - id: "stop_1"

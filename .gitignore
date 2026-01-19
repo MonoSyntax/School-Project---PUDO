@@ -5,6 +5,8 @@ log/
 
 # Local environment
 pudo-env/
+.env
+.envrc
 
 # Python artifacts
 __pycache__/

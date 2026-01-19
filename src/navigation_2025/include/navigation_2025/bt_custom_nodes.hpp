@@ -8,40 +8,125 @@
 #include <deque>
 #include <limits>
 #include <mutex>
-#include <nav_msgs/msg/detail/path__struct.hpp>
 #include <string>
 
+#include "behaviortree_cpp_v3/action_node.h"
 #include "behaviortree_cpp_v3/condition_node.h"
 #include "rclcpp/rclcpp.hpp"
-#include <geometry_msgs/msg/detail/pose_stamped__struct.hpp>
-#include <nav_msgs/msg/detail/odometry__struct.hpp>
-#include <sensor_msgs/msg/detail/laser_scan__struct.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/twist.hpp>
+#include <nav_msgs/msg/odometry.hpp>
+#include <nav_msgs/msg/path.hpp>
+#include <otagg_vision_interfaces/msg/traffic_state.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
 
 namespace navigation_2025 {
 
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
 /**
- * @brief Detects if robot is oscillating (high variance, low net displacement)
+ * @brief Calculate 2D distance between two points
  */
+inline double distance2D(double x1, double y1, double x2, double y2) {
+  double dx = x2 - x1;
+  double dy = y2 - y1;
+  return std::sqrt(dx * dx + dy * dy);
+}
+
+/**
+ * @brief Normalize angle to [-pi, pi]
+ */
+inline double normalizeAngle(double angle) {
+  while (angle > M_PI)
+    angle -= 2.0 * M_PI;
+  while (angle < -M_PI)
+    angle += 2.0 * M_PI;
+  return angle;
+}
+
+/**
+ * @brief Calculate heading between two points
+ */
+inline double calculateHeading(double x1, double y1, double x2, double y2) {
+  return std::atan2(y2 - y1, x2 - x1);
+}
+
+/**
+ * @brief Find closest point on path to a given position
+ */
+inline size_t findClosestPathPoint(const nav_msgs::msg::Path &path, double x,
+                                   double y) {
+
+  if (path.poses.empty())
+    return 0;
+
+  size_t closest_idx = 0;
+  double min_dist = std::numeric_limits<double>::max();
+
+  for (size_t i = 0; i < path.poses.size(); i++) {
+    double dist = distance2D(x, y, path.poses[i].pose.position.x,
+                             path.poses[i].pose.position.y);
+
+    if (dist < min_dist) {
+      min_dist = dist;
+      closest_idx = i;
+    }
+  }
+
+  return closest_idx;
+}
+
+/**
+ * @brief Check if a point is within distance threshold of path
+ */
+inline bool isPointNearPath(const nav_msgs::msg::Path &path, double point_x,
+                            double point_y, double threshold,
+                            size_t lookahead_points = 20) {
+
+  if (path.poses.empty())
+    return false;
+
+  // Find closest point on path
+  size_t start_idx = findClosestPathPoint(path, point_x, point_y);
+
+  // Check points ahead on path (within lookahead)
+  size_t end_idx = std::min(start_idx + lookahead_points, path.poses.size());
+
+  for (size_t i = start_idx; i < end_idx; i++) {
+    double dist = distance2D(point_x, point_y, path.poses[i].pose.position.x,
+                             path.poses[i].pose.position.y);
+
+    if (dist < threshold) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// ============================================================================
+// RECOVERY CONDITION NODES
+// ============================================================================
+
 class DetectOscillation : public BT::ConditionNode {
 public:
   DetectOscillation(const std::string &name,
                     const BT::NodeConfiguration &config)
       : BT::ConditionNode(name, config) {
     node_ = config.blackboard->get<rclcpp::Node::SharedPtr>("node");
-
     getInput("threshold", threshold_);
     getInput("time_window", time_window_);
 
     odom_sub_ = node_->create_subscription<nav_msgs::msg::Odometry>(
-        "/odometry/filtered", 10,
-        [this](const nav_msgs::msg::Odometry::SharedPtr msg) {
+        "/odom", 10, [this](const nav_msgs::msg::Odometry::SharedPtr msg) {
           std::lock_guard<std::mutex> lock(mutex_);
           geometry_msgs::msg::PoseStamped pose;
           pose.header = msg->header;
           pose.pose = msg->pose.pose;
           pose_history_.push_back(pose);
 
-          // Keep only poses within time window
           auto now = node_->now();
           while (!pose_history_.empty()) {
             auto age = (now - pose_history_.front().header.stamp).seconds();
@@ -67,7 +152,6 @@ public:
       return BT::NodeStatus::FAILURE;
     }
 
-    // Calculate position variance
     double sum_x = 0, sum_y = 0;
     for (const auto &pose : pose_history_) {
       sum_x += pose.pose.position.x;
@@ -84,21 +168,15 @@ public:
     }
     variance /= pose_history_.size();
 
-    // Calculate net displacement
     double net_dx = pose_history_.back().pose.position.x -
                     pose_history_.front().pose.position.x;
     double net_dy = pose_history_.back().pose.position.y -
                     pose_history_.front().pose.position.y;
     double net_displacement = std::sqrt(net_dx * net_dx + net_dy * net_dy);
 
-    // High variance + low net displacement = oscillation
     if (variance > threshold_ && net_displacement < 0.5) {
-      RCLCPP_WARN(node_->get_logger(),
-                  "Oscillation detected! variance=%.2f, displacement=%.2f",
-                  variance, net_displacement);
       return BT::NodeStatus::SUCCESS;
     }
-
     return BT::NodeStatus::FAILURE;
   }
 
@@ -111,21 +189,16 @@ private:
   double time_window_{10.0};
 };
 
-/**
- * @brief Checks if robot has diverged too far from planned path
- */
 class PathDivergenceCheck : public BT::ConditionNode {
 public:
   PathDivergenceCheck(const std::string &name,
                       const BT::NodeConfiguration &config)
       : BT::ConditionNode(name, config) {
     node_ = config.blackboard->get<rclcpp::Node::SharedPtr>("node");
-
     getInput("max_divergence", max_divergence_);
 
     odom_sub_ = node_->create_subscription<nav_msgs::msg::Odometry>(
-        "/odometry/filtered", 10,
-        [this](const nav_msgs::msg::Odometry::SharedPtr msg) {
+        "/odom", 10, [this](const nav_msgs::msg::Odometry::SharedPtr msg) {
           std::lock_guard<std::mutex> lock(mutex_);
           current_pose_ = msg->pose.pose;
           has_pose_ = true;
@@ -149,7 +222,6 @@ public:
       return BT::NodeStatus::FAILURE;
     }
 
-    // Find closest point on path
     double min_distance = std::numeric_limits<double>::max();
     for (const auto &pose : path.poses) {
       double dx = current_pose_.position.x - pose.pose.position.x;
@@ -159,10 +231,8 @@ public:
     }
 
     if (min_distance > max_divergence_) {
-      RCLCPP_WARN(node_->get_logger(), "Path divergence: %.2fm", min_distance);
       return BT::NodeStatus::SUCCESS;
     }
-
     return BT::NodeStatus::FAILURE;
   }
 
@@ -175,24 +245,18 @@ private:
   double max_divergence_{2.0};
 };
 
-/**
- * @brief Checks if velocity is too low for too long (stuck detection)
- */
 class LowVelocityCheck : public BT::ConditionNode {
 public:
   LowVelocityCheck(const std::string &name, const BT::NodeConfiguration &config)
       : BT::ConditionNode(name, config) {
     node_ = config.blackboard->get<rclcpp::Node::SharedPtr>("node");
-
     getInput("min_velocity", min_velocity_);
     getInput("duration", duration_threshold_);
 
     odom_sub_ = node_->create_subscription<nav_msgs::msg::Odometry>(
-        "/odometry/filtered", 10,
-        [this](const nav_msgs::msg::Odometry::SharedPtr msg) {
+        "/odom", 10, [this](const nav_msgs::msg::Odometry::SharedPtr msg) {
           std::lock_guard<std::mutex> lock(mutex_);
           current_vel_ = msg->twist.twist;
-          last_update_ = node_->now();
         });
   }
 
@@ -207,23 +271,19 @@ public:
 
     double speed = std::sqrt(current_vel_.linear.x * current_vel_.linear.x +
                              current_vel_.linear.y * current_vel_.linear.y);
-
     auto now = node_->now();
 
     if (speed < min_velocity_) {
       if (low_vel_start_time_.nanoseconds() == 0) {
         low_vel_start_time_ = now;
       }
-
       double duration = (now - low_vel_start_time_).seconds();
       if (duration > duration_threshold_) {
-        RCLCPP_WARN(node_->get_logger(), "Low velocity for %.1fs", duration);
         return BT::NodeStatus::SUCCESS;
       }
     } else {
       low_vel_start_time_ = rclcpp::Time(0);
     }
-
     return BT::NodeStatus::FAILURE;
   }
 
@@ -231,22 +291,17 @@ private:
   rclcpp::Node::SharedPtr node_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
   geometry_msgs::msg::Twist current_vel_;
-  rclcpp::Time last_update_;
   rclcpp::Time low_vel_start_time_{0};
   std::mutex mutex_;
   double min_velocity_{0.1};
   double duration_threshold_{5.0};
 };
 
-/**
- * @brief Checks if it's safe to backup by checking rear clearance
- */
 class IsSafeToBackup : public BT::ConditionNode {
 public:
   IsSafeToBackup(const std::string &name, const BT::NodeConfiguration &config)
       : BT::ConditionNode(name, config) {
     node_ = config.blackboard->get<rclcpp::Node::SharedPtr>("node");
-
     getInput("distance", required_distance_);
 
     scan_sub_ = node_->create_subscription<sensor_msgs::msg::LaserScan>(
@@ -264,18 +319,13 @@ public:
 
   BT::NodeStatus tick() override {
     std::lock_guard<std::mutex> lock(mutex_);
-
     if (!has_scan_) {
       return BT::NodeStatus::FAILURE;
     }
 
-    // Check rear clearance (angles around π radians)
     double min_rear_distance = std::numeric_limits<double>::max();
-
     for (size_t i = 0; i < latest_scan_.ranges.size(); i++) {
       double angle = latest_scan_.angle_min + i * latest_scan_.angle_increment;
-
-      // Rear 90-degree sector (π ± 45°)
       if (std::abs(angle - M_PI) < M_PI / 4 ||
           std::abs(angle + M_PI) < M_PI / 4) {
         if (latest_scan_.ranges[i] > latest_scan_.range_min &&
@@ -286,15 +336,10 @@ public:
       }
     }
 
-    double required_clearance = required_distance_ + 0.5; // Add safety margin
-
+    double required_clearance = required_distance_ + 0.5;
     if (min_rear_distance > required_clearance) {
       return BT::NodeStatus::SUCCESS;
     }
-
-    RCLCPP_WARN(node_->get_logger(),
-                "Unsafe to backup: rear clearance %.2fm < required %.2fm",
-                min_rear_distance, required_clearance);
     return BT::NodeStatus::FAILURE;
   }
 
@@ -307,16 +352,12 @@ private:
   double required_distance_{1.0};
 };
 
-/**
- * @brief Checks if there's enough 360° clearance for complex maneuvers
- */
 class HasClearanceForManeuver : public BT::ConditionNode {
 public:
   HasClearanceForManeuver(const std::string &name,
                           const BT::NodeConfiguration &config)
       : BT::ConditionNode(name, config) {
     node_ = config.blackboard->get<rclcpp::Node::SharedPtr>("node");
-
     getInput("front_clearance", front_clearance_);
     getInput("side_clearance", side_clearance_);
     getInput("rear_clearance", rear_clearance_);
@@ -338,7 +379,6 @@ public:
 
   BT::NodeStatus tick() override {
     std::lock_guard<std::mutex> lock(mutex_);
-
     if (!has_scan_) {
       return BT::NodeStatus::FAILURE;
     }
@@ -352,8 +392,6 @@ public:
     if (front_clear && left_clear && right_clear && rear_clear) {
       return BT::NodeStatus::SUCCESS;
     }
-
-    RCLCPP_WARN(node_->get_logger(), "Insufficient clearance for maneuver");
     return BT::NodeStatus::FAILURE;
   }
 
@@ -361,17 +399,13 @@ private:
   bool checkSectorClearance(double center_angle, double half_width,
                             double required_distance) {
     double min_dist = std::numeric_limits<double>::max();
-
     for (size_t i = 0; i < latest_scan_.ranges.size(); i++) {
       double angle = latest_scan_.angle_min + i * latest_scan_.angle_increment;
-
-      // Normalize angle difference
       double diff = angle - center_angle;
       while (diff > M_PI)
         diff -= 2 * M_PI;
       while (diff < -M_PI)
         diff += 2 * M_PI;
-
       if (std::abs(diff) < half_width) {
         if (latest_scan_.ranges[i] > latest_scan_.range_min &&
             latest_scan_.ranges[i] < latest_scan_.range_max) {
@@ -380,7 +414,6 @@ private:
         }
       }
     }
-
     return min_dist > required_distance;
   }
 
@@ -395,55 +428,103 @@ private:
 };
 
 // ============================================================================
-// Traffic-Aware Condition Nodes
+// TRAFFIC DETECTION NODES (DISTANCE-BASED WITH NAV OVERRIDE)
 // ============================================================================
 
-// Forward declare the TrafficState message
-} // namespace navigation_2025
-
-#include <otagg_vision_interfaces/msg/traffic_state.hpp>
-
-namespace navigation_2025 {
-
 /**
- * @brief Base class for traffic state condition nodes
+ * @brief Base class for traffic detection using distance + nav override
+ *
+ * Since TrafficState only provides distance (not world coordinates),
+ * we use a simpler approach:
+ * 1. Check distance is in valid zone [min, max]
+ * 2. Check nav_override_state if available
+ * 3. Trust that vision system only reports signs ahead in view
  */
-class TrafficStateCondition : public BT::ConditionNode {
+class TrafficConditionBase : public BT::ConditionNode {
 protected:
-  TrafficStateCondition(const std::string &name,
-                        const BT::NodeConfiguration &config)
+  TrafficConditionBase(const std::string &name,
+                       const BT::NodeConfiguration &config)
       : BT::ConditionNode(name, config) {
     node_ = config.blackboard->get<rclcpp::Node::SharedPtr>("node");
 
-    state_sub_ = node_->create_subscription<otagg_vision_interfaces::msg::TrafficState>(
-        "/traffic_state", 10,
-        [this](const otagg_vision_interfaces::msg::TrafficState::SharedPtr msg) {
-          std::lock_guard<std::mutex> lock(mutex_);
-          latest_state_ = *msg;
-          has_state_ = true;
-        });
+    // Subscribe to traffic state
+    state_sub_ =
+        node_->create_subscription<otagg_vision_interfaces::msg::TrafficState>(
+            "/traffic_state", 10,
+            [this](const otagg_vision_interfaces::msg::TrafficState::SharedPtr
+                       msg) {
+              std::lock_guard<std::mutex> lock(mutex_);
+              latest_state_ = *msg;
+              has_state_ = true;
+              last_update_time_ = node_->now();
+            });
+  }
+
+  /**
+   * @brief Check if detection is valid (in distance zone and fresh)
+   */
+  bool isValidDetection(float distance, double min_dist, double max_dist) {
+    // Check if data is recent (within 1 second)
+    auto now = node_->now();
+    auto age = (now - last_update_time_).seconds();
+    if (age > 1.0) {
+      RCLCPP_DEBUG_THROTTLE(node_->get_logger(), *node_->get_clock(), 2000,
+                            "Traffic state too old: %.2fs", age);
+      return false;
+    }
+
+    // Check distance is valid
+    // Check distance is valid
+    if (distance <= 0.0f) {
+      RCLCPP_DEBUG_THROTTLE(node_->get_logger(), *node_->get_clock(), 2000,
+                            "Invalid distance: %.2f", distance);
+      return false;
+    }
+
+    // Check distance zone
+    if (distance < min_dist) {
+      RCLCPP_DEBUG_THROTTLE(node_->get_logger(), *node_->get_clock(), 2000,
+                            "Distance %.2fm < min %.2fm (already passed)",
+                            distance, min_dist);
+      return false;
+    }
+
+    if (distance > max_dist) {
+      RCLCPP_DEBUG_THROTTLE(node_->get_logger(), *node_->get_clock(), 2000,
+                            "Distance %.2fm > max %.2fm (too far)", distance,
+                            max_dist);
+      return false;
+    }
+
+    return true;
   }
 
   rclcpp::Node::SharedPtr node_;
-  rclcpp::Subscription<otagg_vision_interfaces::msg::TrafficState>::SharedPtr state_sub_;
+  rclcpp::Subscription<otagg_vision_interfaces::msg::TrafficState>::SharedPtr
+      state_sub_;
   otagg_vision_interfaces::msg::TrafficState latest_state_;
+  rclcpp::Time last_update_time_;
   std::mutex mutex_;
   bool has_state_{false};
 };
 
 /**
- * @brief Returns SUCCESS when red light detected within distance threshold
+ * @brief Checks if red traffic light should trigger stop
  */
-class IsRedLightDetected : public TrafficStateCondition {
+class IsRedLightDetected : public TrafficConditionBase {
 public:
-  IsRedLightDetected(const std::string &name, const BT::NodeConfiguration &config)
-      : TrafficStateCondition(name, config) {
-    getInput("distance_threshold", distance_threshold_);
+  IsRedLightDetected(const std::string &name,
+                     const BT::NodeConfiguration &config)
+      : TrafficConditionBase(name, config) {
+    getInput("min_distance", min_distance_);
+    getInput("max_distance", max_distance_);
   }
 
   static BT::PortsList providedPorts() {
-    return {
-        BT::InputPort<double>("distance_threshold", 20.0, "Max distance to consider (m)")};
+    return {BT::InputPort<double>("min_distance", 3.0,
+                                  "Min detection distance (m)"),
+            BT::InputPort<double>("max_distance", 15.0,
+                                  "Max detection distance (m)")};
   }
 
   BT::NodeStatus tick() override {
@@ -453,35 +534,55 @@ public:
       return BT::NodeStatus::FAILURE;
     }
 
-    // Check if red light and within distance
-    if (latest_state_.traffic_light_state == 3 &&  // RED
-        latest_state_.traffic_light_distance > 0 &&
-        latest_state_.traffic_light_distance < distance_threshold_) {
-      RCLCPP_INFO(node_->get_logger(), "Red light detected at %.1fm",
-                  latest_state_.traffic_light_distance);
+    // Check if red light is detected
+    if (latest_state_.traffic_light_state != latest_state_.LIGHT_RED) {
+      return BT::NodeStatus::FAILURE;
+    }
+
+    // Check if detection is valid (distance and freshness)
+    if (!isValidDetection(latest_state_.traffic_light_distance, min_distance_,
+                          max_distance_)) {
+      return BT::NodeStatus::FAILURE;
+    }
+
+    // Check nav override if present
+    // Check nav override if present
+    if (latest_state_.nav_override_state == latest_state_.NAV_OVERRIDE_STOP) {
+      RCLCPP_WARN_THROTTLE(
+          node_->get_logger(), *node_->get_clock(), 2000,
+          "🚦 RED LIGHT - STOPPING (dist: %.2fm, override: STOP)",
+          latest_state_.traffic_light_distance);
       return BT::NodeStatus::SUCCESS;
     }
 
-    return BT::NodeStatus::FAILURE;
+    RCLCPP_WARN_THROTTLE(node_->get_logger(), *node_->get_clock(), 2000,
+                         "🚦 RED LIGHT - STOPPING (dist: %.2fm)",
+                         latest_state_.traffic_light_distance);
+    return BT::NodeStatus::SUCCESS;
   }
 
 private:
-  double distance_threshold_{20.0};
+  double min_distance_{3.0};
+  double max_distance_{15.0};
 };
 
 /**
- * @brief Returns SUCCESS when yellow light detected within distance threshold
+ * @brief Checks if yellow traffic light should trigger stop
  */
-class IsYellowLightDetected : public TrafficStateCondition {
+class IsYellowLightDetected : public TrafficConditionBase {
 public:
-  IsYellowLightDetected(const std::string &name, const BT::NodeConfiguration &config)
-      : TrafficStateCondition(name, config) {
-    getInput("distance_threshold", distance_threshold_);
+  IsYellowLightDetected(const std::string &name,
+                        const BT::NodeConfiguration &config)
+      : TrafficConditionBase(name, config) {
+    getInput("min_distance", min_distance_);
+    getInput("max_distance", max_distance_);
   }
 
   static BT::PortsList providedPorts() {
-    return {
-        BT::InputPort<double>("distance_threshold", 20.0, "Max distance to consider (m)")};
+    return {BT::InputPort<double>("min_distance", 3.0,
+                                  "Min detection distance (m)"),
+            BT::InputPort<double>("max_distance", 15.0,
+                                  "Max detection distance (m)")};
   }
 
   BT::NodeStatus tick() override {
@@ -491,168 +592,36 @@ public:
       return BT::NodeStatus::FAILURE;
     }
 
-    if (latest_state_.traffic_light_state == 2 &&  // YELLOW
-        latest_state_.traffic_light_distance > 0 &&
-        latest_state_.traffic_light_distance < distance_threshold_) {
-      return BT::NodeStatus::SUCCESS;
+    // Check if yellow light is detected
+    if (latest_state_.traffic_light_state != latest_state_.LIGHT_YELLOW) {
+      return BT::NodeStatus::FAILURE;
     }
 
-    return BT::NodeStatus::FAILURE;
+    // Check if detection is valid
+    if (!isValidDetection(latest_state_.traffic_light_distance, min_distance_,
+                          max_distance_)) {
+      return BT::NodeStatus::FAILURE;
+    }
+
+    RCLCPP_WARN_THROTTLE(node_->get_logger(), *node_->get_clock(), 2000,
+                         "🟡 YELLOW LIGHT - STOPPING (dist: %.2fm)",
+                         latest_state_.traffic_light_distance);
+    return BT::NodeStatus::SUCCESS;
   }
 
 private:
-  double distance_threshold_{20.0};
+  double min_distance_{3.0};
+  double max_distance_{15.0};
 };
 
 /**
- * @brief Returns SUCCESS when stop sign detected within distance threshold
+ * @brief Checks if green light is detected (allows proceeding)
  */
-class IsStopSignDetected : public TrafficStateCondition {
+class IsGreenLightDetected : public TrafficConditionBase {
 public:
-  IsStopSignDetected(const std::string &name, const BT::NodeConfiguration &config)
-      : TrafficStateCondition(name, config) {
-    getInput("distance_threshold", distance_threshold_);
-  }
-
-  static BT::PortsList providedPorts() {
-    return {
-        BT::InputPort<double>("distance_threshold", 10.0, "Max distance to consider (m)")};
-  }
-
-  BT::NodeStatus tick() override {
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    if (!has_state_) {
-      return BT::NodeStatus::FAILURE;
-    }
-
-    if (latest_state_.stop_sign_detected &&
-        latest_state_.stop_sign_distance > 0 &&
-        latest_state_.stop_sign_distance < distance_threshold_) {
-      RCLCPP_INFO(node_->get_logger(), "Stop sign detected at %.1fm",
-                  latest_state_.stop_sign_distance);
-      return BT::NodeStatus::SUCCESS;
-    }
-
-    return BT::NodeStatus::FAILURE;
-  }
-
-private:
-  double distance_threshold_{10.0};
-};
-
-/**
- * @brief Returns SUCCESS when specified turn is restricted (no_left_turn or no_right_turn)
- */
-class IsTurnRestricted : public TrafficStateCondition {
-public:
-  IsTurnRestricted(const std::string &name, const BT::NodeConfiguration &config)
-      : TrafficStateCondition(name, config) {
-    getInput("direction", direction_);
-  }
-
-  static BT::PortsList providedPorts() {
-    return {
-        BT::InputPort<std::string>("direction", "left", "Turn direction to check: 'left' or 'right'")};
-  }
-
-  BT::NodeStatus tick() override {
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    if (!has_state_) {
-      return BT::NodeStatus::FAILURE;
-    }
-
-    if (direction_ == "left" && latest_state_.no_left_turn) {
-      return BT::NodeStatus::SUCCESS;
-    }
-    if (direction_ == "right" && latest_state_.no_right_turn) {
-      return BT::NodeStatus::SUCCESS;
-    }
-    if (latest_state_.no_entry || latest_state_.road_closed) {
-      return BT::NodeStatus::SUCCESS;
-    }
-
-    return BT::NodeStatus::FAILURE;
-  }
-
-private:
-  std::string direction_{"left"};
-};
-
-/**
- * @brief Returns SUCCESS when bus stop detected within distance threshold
- */
-class IsBusStopDetected : public TrafficStateCondition {
-public:
-  IsBusStopDetected(const std::string &name, const BT::NodeConfiguration &config)
-      : TrafficStateCondition(name, config) {
-    getInput("distance_threshold", distance_threshold_);
-  }
-
-  static BT::PortsList providedPorts() {
-    return {
-        BT::InputPort<double>("distance_threshold", 15.0, "Max distance to consider (m)")};
-  }
-
-  BT::NodeStatus tick() override {
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    if (!has_state_) {
-      return BT::NodeStatus::FAILURE;
-    }
-
-    if (latest_state_.bus_stop_detected &&
-        latest_state_.bus_stop_distance > 0 &&
-        latest_state_.bus_stop_distance < distance_threshold_) {
-      RCLCPP_INFO(node_->get_logger(), "Bus stop detected at %.1fm",
-                  latest_state_.bus_stop_distance);
-      return BT::NodeStatus::SUCCESS;
-    }
-
-    return BT::NodeStatus::FAILURE;
-  }
-
-private:
-  double distance_threshold_{15.0};
-};
-
-/**
- * @brief Returns SUCCESS when a speed limit is active (non-zero)
- */
-class IsSpeedLimitActive : public TrafficStateCondition {
-public:
-  IsSpeedLimitActive(const std::string &name, const BT::NodeConfiguration &config)
-      : TrafficStateCondition(name, config) {}
-
-  static BT::PortsList providedPorts() {
-    return {
-        BT::OutputPort<uint8_t>("speed_limit", "Detected speed limit in km/h")};
-  }
-
-  BT::NodeStatus tick() override {
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    if (!has_state_) {
-      return BT::NodeStatus::FAILURE;
-    }
-
-    if (latest_state_.speed_limit_kmh > 0) {
-      setOutput("speed_limit", latest_state_.speed_limit_kmh);
-      return BT::NodeStatus::SUCCESS;
-    }
-
-    return BT::NodeStatus::FAILURE;
-  }
-};
-
-/**
- * @brief Returns SUCCESS when traffic light is green (for WaitForGreenLight use)
- */
-class IsGreenLightDetected : public TrafficStateCondition {
-public:
-  IsGreenLightDetected(const std::string &name, const BT::NodeConfiguration &config)
-      : TrafficStateCondition(name, config) {}
+  IsGreenLightDetected(const std::string &name,
+                       const BT::NodeConfiguration &config)
+      : TrafficConditionBase(name, config) {}
 
   static BT::PortsList providedPorts() { return {}; }
 
@@ -663,8 +632,9 @@ public:
       return BT::NodeStatus::FAILURE;
     }
 
-    if (latest_state_.traffic_light_state == 1) {  // GREEN
-      RCLCPP_INFO(node_->get_logger(), "Green light detected!");
+    if (latest_state_.traffic_light_state == latest_state_.LIGHT_GREEN) {
+      RCLCPP_INFO_THROTTLE(node_->get_logger(), *node_->get_clock(), 2000,
+                           "🟢 GREEN LIGHT - PROCEEDING");
       return BT::NodeStatus::SUCCESS;
     }
 
@@ -672,7 +642,114 @@ public:
   }
 };
 
+/**
+ * @brief Checks if stop sign should trigger stop
+ */
+class IsStopSignDetected : public TrafficConditionBase {
+public:
+  IsStopSignDetected(const std::string &name,
+                     const BT::NodeConfiguration &config)
+      : TrafficConditionBase(name, config) {
+    getInput("min_distance", min_distance_);
+    getInput("max_distance", max_distance_);
+  }
+
+  static BT::PortsList providedPorts() {
+    return {BT::InputPort<double>("min_distance", 3.0,
+                                  "Min detection distance (m)"),
+            BT::InputPort<double>("max_distance", 15.0,
+                                  "Max detection distance (m)")};
+  }
+
+  BT::NodeStatus tick() override {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (!has_state_ || !latest_state_.stop_sign_detected) {
+      return BT::NodeStatus::FAILURE;
+    }
+
+    // Check if detection is valid
+    if (!isValidDetection(latest_state_.stop_sign_distance, min_distance_,
+                          max_distance_)) {
+      return BT::NodeStatus::FAILURE;
+    }
+
+    // Check nav override if present
+    // Check nav override if present
+    if (latest_state_.nav_override_state == latest_state_.NAV_OVERRIDE_STOP) {
+      RCLCPP_WARN_THROTTLE(
+          node_->get_logger(), *node_->get_clock(), 2000,
+          "🛑 STOP SIGN - STOPPING (dist: %.2fm, override: STOP)",
+          latest_state_.stop_sign_distance);
+      return BT::NodeStatus::SUCCESS;
+    }
+
+    RCLCPP_WARN_THROTTLE(node_->get_logger(), *node_->get_clock(), 2000,
+                         "🛑 STOP SIGN - STOPPING (dist: %.2fm)",
+                         latest_state_.stop_sign_distance);
+    return BT::NodeStatus::SUCCESS;
+  }
+
+private:
+  double min_distance_{3.0};
+  double max_distance_{15.0};
+};
+
+// ============================================================================
+// ACTION NODES
+// ============================================================================
+
+/**
+ * @brief Publishes zero velocity to stop the robot
+ */
+class PublishZeroVelocity : public BT::SyncActionNode {
+public:
+  PublishZeroVelocity(const std::string &name,
+                      const BT::NodeConfiguration &config)
+      : BT::SyncActionNode(name, config) {
+    node_ = config.blackboard->get<rclcpp::Node::SharedPtr>("node");
+    getInput("duration", duration_);
+
+    // Publisher for cmd_vel
+    cmd_vel_pub_ =
+        node_->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
+  }
+
+  static BT::PortsList providedPorts() {
+    return {BT::InputPort<double>(
+        "duration", 0.5, "How long to publish zero velocity (seconds)")};
+  }
+
+  BT::NodeStatus tick() override {
+    geometry_msgs::msg::Twist zero_vel;
+    zero_vel.linear.x = 0.0;
+    zero_vel.linear.y = 0.0;
+    zero_vel.linear.z = 0.0;
+    zero_vel.angular.x = 0.0;
+    zero_vel.angular.y = 0.0;
+    zero_vel.angular.z = 0.0;
+
+    auto start = node_->now();
+    auto duration_ns =
+        std::chrono::nanoseconds(static_cast<int64_t>(duration_ * 1e9));
+    rclcpp::Duration duration(duration_ns);
+
+    while ((node_->now() - start) < duration) {
+      cmd_vel_pub_->publish(zero_vel);
+      rclcpp::sleep_for(std::chrono::milliseconds(50));
+    }
+
+    RCLCPP_INFO_THROTTLE(node_->get_logger(), *node_->get_clock(), 2000,
+                         "Robot stopped (zero velocity published)");
+    return BT::NodeStatus::SUCCESS;
+  }
+
+private:
+  rclcpp::Node::SharedPtr node_;
+  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
+  double duration_{0.5};
+};
+
 } // namespace navigation_2025
 
 #endif // NAVIGATION_2025__BT_CUSTOM_NODES_HPP_
-

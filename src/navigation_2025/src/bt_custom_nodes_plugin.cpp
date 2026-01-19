@@ -5,7 +5,7 @@
 #include "navigation_2025/bt_custom_nodes.hpp"
 
 BT_REGISTER_NODES(factory) {
-  // Original Ackermann recovery nodes
+  // ===== RECOVERY CONDITION NODES =====
   factory.registerNodeType<navigation_2025::DetectOscillation>(
       "DetectOscillation");
   factory.registerNodeType<navigation_2025::PathDivergenceCheck>(
@@ -16,7 +16,7 @@ BT_REGISTER_NODES(factory) {
   factory.registerNodeType<navigation_2025::HasClearanceForManeuver>(
       "HasClearanceForManeuver");
 
-  // Traffic-aware condition nodes
+  // ===== TRAFFIC DETECTION NODES (DISTANCE-BASED) =====
   factory.registerNodeType<navigation_2025::IsRedLightDetected>(
       "IsRedLightDetected");
   factory.registerNodeType<navigation_2025::IsYellowLightDetected>(
@@ -25,10 +25,8 @@ BT_REGISTER_NODES(factory) {
       "IsGreenLightDetected");
   factory.registerNodeType<navigation_2025::IsStopSignDetected>(
       "IsStopSignDetected");
-  factory.registerNodeType<navigation_2025::IsTurnRestricted>(
-      "IsTurnRestricted");
-  factory.registerNodeType<navigation_2025::IsBusStopDetected>(
-      "IsBusStopDetected");
-  factory.registerNodeType<navigation_2025::IsSpeedLimitActive>(
-      "IsSpeedLimitActive");
+
+  // ===== ACTION NODES =====
+  factory.registerNodeType<navigation_2025::PublishZeroVelocity>(
+      "PublishZeroVelocity");
 }

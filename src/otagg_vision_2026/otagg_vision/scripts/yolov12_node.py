@@ -69,6 +69,10 @@ class TrafficDetectionNode(Node):
         self.fps = 0
         self.detection_history = defaultdict(int)
         
+        # Alert throttling
+        self.last_alert_time = defaultdict(float)
+        self.alert_throttle_duration = 2.0  # seconds
+        
         # Load model
         self._load_model()
         
@@ -198,9 +202,7 @@ class TrafficDetectionNode(Node):
                     'bbox': box.xyxy[0].cpu().numpy().astype(int),
                     'category': category
                 }
-                detections.append(det)
-                self.get_logger().info(f"Detection: Class ID: {class_id}, Name: {class_name}, Confidence: {confidence:.2f}, Category: {category}")
-        
+                detections.append(det)        
         return detections
     
     def _get_category(self, class_name: str) -> str:
@@ -233,7 +235,11 @@ class TrafficDetectionNode(Node):
             
             # Publish alert
             if alert:
-                self.get_logger().warn(alert)
+                current_time = time.time()
+                if current_time - self.last_alert_time[alert] > self.alert_throttle_duration:
+                    self.get_logger().warn(alert)
+                    self.last_alert_time[alert] = current_time
+                    
                 msg = String()
                 msg.data = alert
                 self.alert_pub.publish(msg)

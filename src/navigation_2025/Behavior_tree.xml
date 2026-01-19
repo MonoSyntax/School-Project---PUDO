@@ -1,27 +1,14 @@
-<!--
-  Enhanced Behavior Tree for Ackermann Drive Vehicle
-  ==================================================
-  
-  Key Improvements:
-  - Ackermann-specific recovery maneuvers (multi-point turns)
-  - Enhanced stuck detection with multiple conditions
-  - Faster replanning (1 Hz instead of 0.333 Hz)
-  - Better recovery action ordering for car-like vehicles
-  - Oscillation detection
-  - Path timeout and divergence checking
-  - Progressive recovery escalation
-  - Clearance validation before maneuvers
--->
 <root BTCPP_format="4" main_tree_to_execute="MainTree">
   
-  <!-- Main Navigation Tree -->
+  <!-- ================================================================== -->
+  <!-- MAIN NAVIGATION TREE -->
+  <!-- ================================================================== -->
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="10" name="NavigateRecovery">
       
-      <!-- Primary Navigation Pipeline -->
       <PipelineSequence name="NavigateWithReplanning">
         
-        <!-- Selectors for swappable algorithms -->
+        <!-- Algorithm Selectors -->
         <ProgressCheckerSelector 
           selected_progress_checker="{selected_progress_checker}" 
           default_progress_checker="progress_checker" 
@@ -42,13 +29,11 @@
           default_planner="GridBased" 
           topic_name="planner_selector"/>
         
-        <!-- Faster replanning for Ackermann vehicles (1 Hz instead of 0.333 Hz) -->
+        <!-- Path Planning at 1 Hz -->
         <RateController hz="1.0">
           <RecoveryNode number_of_retries="3" name="ComputePathThroughPoses">
             
-            <!-- Path Planning -->
             <ReactiveSequence>
-              <!-- Remove waypoints that have been passed -->
               <RemovePassedGoals 
                 input_goals="{goals}" 
                 output_goals="{goals}" 
@@ -56,7 +41,6 @@
                 input_waypoint_statuses="{waypoint_statuses}" 
                 output_waypoint_statuses="{waypoint_statuses}"/>
               
-              <!-- Compute path through remaining goals -->
               <ComputePathThroughPoses 
                 goals="{goals}" 
                 path="{path}" 
@@ -65,7 +49,6 @@
                 error_msg="{compute_path_error_msg}"/>
             </ReactiveSequence>
             
-            <!-- Path Planning Recovery -->
             <Sequence>
               <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
               <ClearEntireCostmap 
@@ -77,22 +60,17 @@
         </RateController>
         
         <!-- Traffic-Aware Path Following -->
-        <!-- Checks traffic conditions reactively while following path -->
         <ReactiveFallback name="TrafficAwareFollowing">
           
-          <!-- Check 1: Traffic Light -->
+          <!-- Priority 1: Traffic Light Compliance -->
           <SubTree ID="TrafficLightHandler"/>
           
-          <!-- Check 2: Stop Sign -->
+          <!-- Priority 2: Stop Sign Compliance -->
           <SubTree ID="StopSignHandler"/>
           
-          <!-- Check 3: Bus Stop PUDO -->
-          <SubTree ID="BusStopPUDO"/>
-          
-          <!-- Main Path Following with Enhanced Recovery -->
+          <!-- Priority 3: Normal Path Following -->
           <RecoveryNode number_of_retries="3" name="FollowPath">
             
-            <!-- Main path following -->
             <FollowPath 
               path="{path}" 
               controller_id="{selected_controller}" 
@@ -101,7 +79,6 @@
               goal_checker_id="{selected_goal_checker}" 
               progress_checker_id="{selected_progress_checker}"/>
             
-            <!-- Controller Recovery -->
             <Sequence>
               <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
               <ClearEntireCostmap 
@@ -115,38 +92,31 @@
         
       </PipelineSequence>
       
-      <!-- Advanced Recovery Sequence for Ackermann Drive -->
+      <!-- Recovery Actions -->
       <Sequence name="RecoverySequence">
         
-        <!-- Check if recovery is needed -->
         <Fallback>
           <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
           <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
         </Fallback>
         
-        <!-- Progressive Recovery Strategy -->
         <ReactiveFallback name="RecoveryFallback">
-          
-          <!-- Allow goal updates to interrupt recovery -->
           <GoalUpdated/>
           
-          <!-- Stuck Detection Tree -->
-          <SubTree ID="StuckDetectionTree" 
-                   is_stuck="{is_stuck}" 
-                   stuck_duration="{stuck_duration}"/>
-          
-          <!-- Progressive Recovery Actions -->
-          <Sequence name="ProgressiveRecovery">
+          <Sequence name="SimpleRecovery">
+            <ClearEntireCostmap service_name="local_costmap/clear_entirely_local_costmap"/>
+            <ClearEntireCostmap service_name="global_costmap/clear_entirely_global_costmap"/>
+            <Wait wait_duration="1.0"/>
             
-            <!-- Level 1: Light Recovery (costmap clearing) -->
-            <SubTree ID="LightRecoveryTree"/>
+            <Fallback>
+              <Sequence>
+                <IsSafeToBackup distance="0.5"/>
+                <BackUp backup_dist="0.5" backup_speed="0.2" time_allowance="15.0"/>
+              </Sequence>
+              <AlwaysSuccess/>
+            </Fallback>
             
-            <!-- Level 2: Moderate Recovery (small maneuvers) -->
-            <SubTree ID="ModerateRecoveryTree"/>
-            
-            <!-- Level 3: Aggressive Recovery (complex maneuvers) -->
-            <SubTree ID="AggressiveRecoveryTree"/>
-            
+            <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="{selected_planner}"/>
           </Sequence>
           
         </ReactiveFallback>
@@ -157,290 +127,72 @@
   </BehaviorTree>
   
   
-  <!-- Stuck Detection Subtree -->
-  <BehaviorTree ID="StuckDetectionTree">
-    <Fallback name="StuckChecks">
-      
-      <!-- Check 1: No progress over time -->
-      <Inverter>
-        <IsPathValid path="{path}"/>
-      </Inverter>
-      
-      <!-- Check 2: Oscillation detection -->
-      <DetectOscillation threshold="0.3" time_window="10.0"/>
-      
-      <!-- Check 3: Path divergence -->
-      <PathDivergenceCheck max_divergence="2.0" path="{path}"/>
-      
-      <!-- Check 4: Prolonged low velocity -->
-      <LowVelocityCheck min_velocity="0.1" duration="5.0"/>
-      
-      <!-- If none of the above, not stuck -->
-      <AlwaysSuccess/>
-      
-    </Fallback>
-  </BehaviorTree>
-  
-  
-  <!-- Level 1: Light Recovery (Quick fixes) -->
-  <BehaviorTree ID="LightRecoveryTree">
-    <Sequence name="LightRecovery">
-      
-      <!-- Clear costmaps -->
-      <ClearEntireCostmap 
-        name="ClearLocalCostmap-Light" 
-        service_name="local_costmap/clear_entirely_local_costmap"/>
-      
-      <ClearEntireCostmap 
-        name="ClearGlobalCostmap-Light" 
-        service_name="global_costmap/clear_entirely_global_costmap"/>
-      
-      <!-- Brief wait to let costmaps rebuild -->
-      <Wait wait_duration="1.0"/>
-      
-      <!-- Try replanning -->
-      <ComputePathThroughPoses 
-        goals="{goals}" 
-        path="{path}" 
-        planner_id="{selected_planner}"/>
-      
-    </Sequence>
-  </BehaviorTree>
-  
-  
-  <!-- Level 2: Moderate Recovery (Small maneuvers) -->
-  <BehaviorTree ID="ModerateRecoveryTree">
-    <Fallback name="ModerateRecovery">
-      
-      <!-- Try small backup first -->
-      <Sequence name="SmallBackup">
-        <!-- Check if backup is safe -->
-        <IsSafeToBackup distance="0.5"/>
-        
-        <!-- Backup slowly -->
-        <BackUp 
-          backup_dist="0.5" 
-          backup_speed="0.2" 
-          time_allowance="15.0"
-          error_code_id="{backup_error_code}"/>
-        
-        <!-- Clear costmaps after backup -->
-        <ClearEntireCostmap service_name="local_costmap/clear_entirely_local_costmap"/>
-        
-        <!-- Wait briefly -->
-        <Wait wait_duration="1.0"/>
-      </Sequence>
-      
-      <!-- Try slight rotation if backup fails -->
-      <Sequence name="SlightRotation">
-        <!-- Ackermann-friendly: small angle rotation -->
-        <Spin 
-          spin_dist="0.785" 
-          time_allowance="15.0"
-          error_code_id="{spin_error_code}"/>
-        
-        <Wait wait_duration="1.0"/>
-      </Sequence>
-      
-    </Fallback>
-  </BehaviorTree>
-  
-  
-  <!-- Level 3: Aggressive Recovery (Complex Ackermann maneuvers) -->
-  <BehaviorTree ID="AggressiveRecoveryTree">
-    <Fallback name="AggressiveRecovery">
-      
-      <!-- Attempt 1: Y-Turn (3-point turn) -->
-      <SubTree ID="YTurnManeuver"/>
-      
-      <!-- Attempt 2: Extended backup with reorientation -->
-      <SubTree ID="ExtendedBackupManeuver"/>
-      
-      <!-- Attempt 3: Large area clearing with replanning -->
-      <Sequence name="LargeAreaClearing">
-        <ClearEntireCostmap service_name="local_costmap/clear_entirely_local_costmap"/>
-        <ClearEntireCostmap service_name="global_costmap/clear_entirely_global_costmap"/>
-        <Wait wait_duration="2.0"/>
-        <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="{selected_planner}"/>
-      </Sequence>
-      
-      <!-- Attempt 4: Emergency stop and wait -->
-      <Sequence name="EmergencyWait">
-        <Wait wait_duration="10.0"/>
-        <ClearEntireCostmap service_name="local_costmap/clear_entirely_local_costmap"/>
-        <ClearEntireCostmap service_name="global_costmap/clear_entirely_global_costmap"/>
-      </Sequence>
-      
-    </Fallback>
-  </BehaviorTree>
-  
-  
-  <!-- Y-Turn Maneuver (3-Point Turn for Ackermann) -->
-  <BehaviorTree ID="YTurnManeuver">
-    <Sequence name="ThreePointTurn">
-      
-      <!-- Check if space is available -->
-      <HasClearanceForManeuver 
-        front_clearance="3.0" 
-        side_clearance="2.0" 
-        rear_clearance="2.0"/>
-      
-      <!-- Step 1: Forward turn -->
-      <Sequence name="ForwardTurn">
-        <DriveOnHeading 
-          dist_to_travel="1.5" 
-          speed="0.3" 
-          time_allowance="20.0"/>
-        <Wait wait_duration="0.5"/>
-      </Sequence>
-      
-      <!-- Step 2: Backup turn (opposite direction) -->
-      <Sequence name="BackupTurn">
-        <BackUp 
-          backup_dist="1.2" 
-          backup_speed="0.2" 
-          time_allowance="20.0"/>
-        <Wait wait_duration="0.5"/>
-      </Sequence>
-      
-      <!-- Step 3: Final forward turn to complete orientation -->
-      <Sequence name="CompleteTurn">
-        <DriveOnHeading 
-          dist_to_travel="1.5" 
-          speed="0.3" 
-          time_allowance="20.0"/>
-        <Wait wait_duration="0.5"/>
-      </Sequence>
-      
-      <!-- Clear costmaps after maneuver -->
-      <ClearEntireCostmap service_name="local_costmap/clear_entirely_local_costmap"/>
-      
-    </Sequence>
-  </BehaviorTree>
-  
-  
-  <!-- Extended Backup Maneuver -->
-  <BehaviorTree ID="ExtendedBackupManeuver">
-    <Sequence name="ExtendedBackup">
-      
-      <!-- Check safety -->
-      <IsSafeToBackup distance="2.0"/>
-      
-      <!-- Long backup -->
-      <BackUp 
-        backup_dist="2.0" 
-        backup_speed="0.25" 
-        time_allowance="30.0"
-        error_code_id="{extended_backup_error_code}"/>
-      
-      <!-- Pause -->
-      <Wait wait_duration="1.0"/>
-      
-      <!-- Clear local area -->
-      <ClearEntireCostmap service_name="local_costmap/clear_entirely_local_costmap"/>
-      
-      <!-- Small forward movement to reorient -->
-      <DriveOnHeading 
-        dist_to_travel="0.5" 
-        speed="0.2" 
-        time_allowance="10.0"/>
-      
-      <!-- Final costmap clear -->
-      <ClearEntireCostmap service_name="local_costmap/clear_entirely_local_costmap"/>
-      <ClearEntireCostmap service_name="global_costmap/clear_entirely_global_costmap"/>
-      
-    </Sequence>
-  </BehaviorTree>
-  
-  
-  <!-- ============================================================ -->
-  <!-- Traffic-Aware Subtrees for Sign-Based Navigation             -->
-  <!-- ============================================================ -->
-  
-  <!-- Traffic Light Handler: Stops at red/yellow, proceeds on green -->
+  <!-- ================================================================== -->
+  <!-- TRAFFIC LIGHT HANDLER -->
+  <!-- ================================================================== -->
   <BehaviorTree ID="TrafficLightHandler">
     <ReactiveFallback name="HandleTrafficLight">
       
-      <!-- If no red/yellow light ahead, proceed normally (return SUCCESS) -->
+      <!-- Check 1: No relevant red/yellow light → Proceed -->
       <Inverter>
         <Fallback>
-          <IsRedLightDetected distance_threshold="20.0"/>
-          <IsYellowLightDetected distance_threshold="15.0"/>
+          <!-- Red light in detection zone (3-15m) -->
+          <IsRedLightDetected 
+            min_distance="3.0"
+            max_distance="15.0"/>
+          
+          <!-- Yellow light in detection zone (3-15m) -->
+          <IsYellowLightDetected 
+            min_distance="3.0"
+            max_distance="15.0"/>
         </Fallback>
       </Inverter>
       
-      <!-- Red/Yellow detected: Stop and wait for green -->
-      <Sequence name="StopAndWaitForGreen">
-        <!-- Log the event -->
-        <AlwaysSuccess/>
+      <!-- Check 2: Red/Yellow detected → Stop and wait 10 seconds -->
+      <Sequence name="StopForTrafficLight">
         
-        <!-- Wait briefly (robot should already be slowing down) -->
-        <Wait wait_duration="0.5"/>
+        <!-- Stop the robot -->
+        <PublishZeroVelocity duration="0.5"/>
         
-        <!-- Keep waiting until green light detected -->
-        <RetryUntilSuccessful num_attempts="1000">
-          <Sequence>
-            <IsGreenLightDetected/>
-            <Wait wait_duration="1.0"/>
-          </Sequence>
-        </RetryUntilSuccessful>
+        <!-- Wait 10 seconds (since light changing is broken) -->
+        <Wait wait_duration="10.0"/>
+        
       </Sequence>
       
     </ReactiveFallback>
   </BehaviorTree>
   
   
-  <!-- Stop Sign Handler: Comes to full stop for 3 seconds -->
+  <!-- ================================================================== -->
+  <!-- STOP SIGN HANDLER -->
+  <!-- ================================================================== -->
   <BehaviorTree ID="StopSignHandler">
-    <Fallback name="HandleStopSign">
+    <ReactiveFallback name="HandleStopSign">
       
-      <!-- If no stop sign ahead, proceed normally -->
+      <!-- Check 1: No relevant stop sign → Proceed -->
       <Inverter>
-        <IsStopSignDetected distance_threshold="8.0"/>
+        <IsStopSignDetected 
+          min_distance="3.0"
+          max_distance="15.0"/>
       </Inverter>
       
-      <!-- Stop sign detected: Full stop for 3 seconds -->
-      <Sequence name="StopAtSign">
-        <Wait wait_duration="3.0"/>
+      <!-- Check 2: Stop sign detected → Stop and wait 10 seconds -->
+      <Sequence name="StopForStopSign">
+        
+        <!-- Stop the robot -->
+        <PublishZeroVelocity duration="0.5"/>
+        
+        <!-- Wait 5 seconds -->
+        <Wait wait_duration="5.0"/>
+        
       </Sequence>
       
-    </Fallback>
+    </ReactiveFallback>
   </BehaviorTree>
   
   
-  <!-- Bus Stop PUDO Handler: Approach and dock at bus stop -->
-  <BehaviorTree ID="BusStopPUDO">
-    <Fallback name="HandleBusStop">
-      
-      <!-- If no bus stop ahead, proceed normally -->
-      <Inverter>
-        <IsBusStopDetected distance_threshold="15.0"/>
-      </Inverter>
-      
-      <!-- Bus stop detected: Approach and wait for passengers -->
-      <Sequence name="DockAtBusStop">
-        <!-- Wait to allow approach at reduced speed -->
-        <Wait wait_duration="2.0"/>
-        
-        <!-- Dwell time for passenger boarding/alighting -->
-        <Wait wait_duration="10.0"/>
-        
-        <!-- Brief pause before resuming -->
-        <Wait wait_duration="1.0"/>
-      </Sequence>
-      
-    </Fallback>
-  </BehaviorTree>
-  
-  
-  <!-- Speed Limit Awareness (logging only per user request) -->
-  <BehaviorTree ID="SpeedLimitCheck">
-    <Fallback>
-      <Inverter>
-        <IsSpeedLimitActive speed_limit="{detected_speed}"/>
-      </Inverter>
-      <AlwaysSuccess/>
-    </Fallback>
-  </BehaviorTree>
+  <!-- ================================================================== -->
+  <!-- ROBOT STOPPING BEHAVIOR (NOT NEEDED - PublishZeroVelocity is inline) -->
+  <!-- ================================================================== -->
   
 </root>

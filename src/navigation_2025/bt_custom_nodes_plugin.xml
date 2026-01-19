@@ -1,75 +1,114 @@
 <library path="bt_custom_nodes_plugin">
-  <!-- Original Ackermann Recovery Nodes -->
+  
+  <!-- ================================================================ -->
+  <!-- RECOVERY CONDITION NODES -->
+  <!-- ================================================================ -->
+  
   <class name="DetectOscillation" 
          type="navigation_2025::DetectOscillation" 
          base_class_type="BT::ConditionNode">
-    <description>Detects if robot is oscillating</description>
+    <description>Detects if robot is oscillating (high variance, low net displacement)</description>
   </class>
   
   <class name="PathDivergenceCheck" 
          type="navigation_2025::PathDivergenceCheck" 
          base_class_type="BT::ConditionNode">
-    <description>Checks if robot has diverged from path</description>
+    <description>Checks if robot has diverged too far from planned path</description>
   </class>
   
   <class name="LowVelocityCheck" 
          type="navigation_2025::LowVelocityCheck" 
          base_class_type="BT::ConditionNode">
-    <description>Checks if velocity is too low for too long</description>
+    <description>Checks if velocity is too low for too long (stuck detection)</description>
   </class>
   
   <class name="IsSafeToBackup" 
          type="navigation_2025::IsSafeToBackup" 
          base_class_type="BT::ConditionNode">
-    <description>Checks if it's safe to backup</description>
+    <description>Checks if it's safe to backup by checking rear clearance</description>
   </class>
   
   <class name="HasClearanceForManeuver" 
          type="navigation_2025::HasClearanceForManeuver" 
          base_class_type="BT::ConditionNode">
-    <description>Checks if there's enough space for maneuver</description>
+    <description>Checks if there's enough 360° clearance for complex maneuvers</description>
   </class>
   
-  <!-- Traffic-Aware Condition Nodes -->
+  
+  <!-- ================================================================ -->
+  <!-- TRAFFIC DETECTION NODES (DISTANCE-BASED) -->
+  <!-- ================================================================ -->
+  
   <class name="IsRedLightDetected" 
          type="navigation_2025::IsRedLightDetected" 
          base_class_type="BT::ConditionNode">
-    <description>Returns SUCCESS when red light detected within distance</description>
+    <description>
+      Checks if red traffic light should trigger stop.
+      
+      Returns SUCCESS only if:
+      1. Red light is detected in TrafficState message
+      2. Distance is within zone [min_distance, max_distance]
+      3. Data is recent (within 1 second)
+      
+      Assumes vision system only reports lights in camera FOV (ahead of robot).
+    </description>
   </class>
   
   <class name="IsYellowLightDetected" 
          type="navigation_2025::IsYellowLightDetected" 
          base_class_type="BT::ConditionNode">
-    <description>Returns SUCCESS when yellow light detected within distance</description>
+    <description>
+      Checks if yellow traffic light should trigger stop.
+      
+      Returns SUCCESS only if:
+      1. Yellow light is detected in TrafficState message
+      2. Distance is within zone [min_distance, max_distance]
+      3. Data is recent (within 1 second)
+      
+      Assumes vision system only reports lights in camera FOV (ahead of robot).
+    </description>
   </class>
   
   <class name="IsGreenLightDetected" 
          type="navigation_2025::IsGreenLightDetected" 
          base_class_type="BT::ConditionNode">
-    <description>Returns SUCCESS when green light detected</description>
+    <description>
+      Checks if green traffic light is detected (allows proceeding).
+      
+      Returns SUCCESS if green light is currently detected.
+      Used for future enhancement when traffic light state changes are working.
+    </description>
   </class>
   
   <class name="IsStopSignDetected" 
          type="navigation_2025::IsStopSignDetected" 
          base_class_type="BT::ConditionNode">
-    <description>Returns SUCCESS when stop sign detected within distance</description>
+    <description>
+      Checks if stop sign should trigger stop.
+      
+      Returns SUCCESS only if:
+      1. Stop sign is detected in TrafficState message
+      2. Distance is within zone [min_distance, max_distance]
+      3. Data is recent (within 1 second)
+      
+      Assumes vision system only reports signs in camera FOV (ahead of robot).
+    </description>
   </class>
   
-  <class name="IsTurnRestricted" 
-         type="navigation_2025::IsTurnRestricted" 
-         base_class_type="BT::ConditionNode">
-    <description>Returns SUCCESS when specified turn direction is restricted</description>
+  
+  <!-- ================================================================ -->
+  <!-- ACTION NODES -->
+  <!-- ================================================================ -->
+  
+  <class name="PublishZeroVelocity" 
+         type="navigation_2025::PublishZeroVelocity" 
+         base_class_type="BT::SyncActionNode">
+    <description>
+      Publishes zero velocity commands to stop the robot.
+      
+      Continuously publishes zero velocity for the specified duration
+      to ensure the robot comes to a complete stop.
+    </description>
   </class>
   
-  <class name="IsBusStopDetected" 
-         type="navigation_2025::IsBusStopDetected" 
-         base_class_type="BT::ConditionNode">
-    <description>Returns SUCCESS when bus stop detected within distance</description>
-  </class>
-  
-  <class name="IsSpeedLimitActive" 
-         type="navigation_2025::IsSpeedLimitActive" 
-         base_class_type="BT::ConditionNode">
-    <description>Returns SUCCESS when a speed limit sign is active</description>
-  </class>
 </library>

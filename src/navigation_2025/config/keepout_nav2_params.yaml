@@ -158,12 +158,6 @@ controller_server:
       use_rotate_to_heading: true
       rotate_to_heading_min_angle: 0.7
       max_angular_accel: 3.0
-      max_robot_pose_search_dist: 6.0
-      use_interpolation: true
-      cost_scaling_dist: 0.7
-      cost_scaling_gain: 1.0
-      inflation_cost_scaling_factor: 3.0
-      allow_reversing: false
       max_robot_pose_search_dist: 5.0  # Daha hızlı poz arama için 10'dan azaltıldı - robot poz arama mesafesi
       use_interpolation: false  # Enterpolasyon kullanma - performans için kapatıldı
       cost_scaling_dist: 1.0  # Maliyet ölçekleme mesafesi - engellere olan mesafe ölçekleme
@@ -415,12 +409,12 @@ velocity_smoother:
     smoothing_frequency: 8.0  # Daha iyi performans için daha da azaltıldı - hız yumuşatma frekansı
     scale_velocities: false  # Hızları ölçekle - hız değerlerini ölçeklendir
     feedback: "OPEN_LOOP"  # Geri bildirim tipi - açık döngü kontrolü
-    max_velocity: [2.0, 0.0, 1.5]  # Maksimum hız - [x, y, theta] maksimum hız değerleri
+    max_velocity: [5.0, 0.0, 2.5]  # Maksimum hız - [x, y, theta] maksimum hız değerleri
     min_velocity: [-2.0, 0.0, -1.5]  # Minimum hız - [x, y, theta] minimum hız değerleri
     deadband_velocity: [0.0, 0.0, 0.0]  # Ölü bölge hızı - küçük hızları sıfırla
     velocity_timeout: 1.0  # Hız zaman aşımı - hız komutları için maksimum geçerlilik süresi
-    max_accel: [1.0, 0.0, 1.0]  # Maksimum ivme - [x, y, theta] maksimum ivme değerleri
-    max_decel: [-1.0, 0.0, -1.0]  # Maksimum yavaşlama - [x, y, theta] maksimum negatif ivme
+    max_accel: [2.5, 0.0, 2.5]  # Maksimum ivme - [x, y, theta] maksimum ivme değerleri
+    max_decel: [-2.5, 0.0, -2.5]  # Maksimum yavaşlama - [x, y, theta] maksimum negatif ivme
     odom_topic: "odom"  # Odometri topic'i - robot hız bilgilerinin geldiği kanal
     odom_duration: 0.1  # Odometri süresi - odometri verilerinin geçerlilik süresi
     use_realtime_priority: false  # Gerçek zamanlı öncelik kullan - sistem öncelik ayarı

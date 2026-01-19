@@ -102,20 +102,14 @@ def generate_launch_description():
                     'stop_sign_stop_distance': 3.0,
                     'stop_sign_approach_distance': 10.0,
                     'stop_sign_wait_duration': 3.0,
-                    'pudo_approach_distance': 15.0,
-                    'pudo_wait_duration': 10.0,
-                }],
-                remappings=[
-                    # Nav2 publishes to cmd_vel, we remap to cmd_vel_nav
-                    # so velocity_override can intercept
-                ]
+                }]
             )
         ]
     )
     
-    # Bus Stop Loop Node - navigates through stops continuously
+    # Bus Stop Loop Node - automatic navigation between stops
     bus_stop_loop = TimerAction(
-        period=25.0,  # Start after navigation is ready
+        period=25.0,
         actions=[
             Node(
                 package='otagg_vision',
@@ -143,5 +137,4 @@ def generate_launch_description():
     ld.add_action(bus_stop_loop)
     
     return ld
-
 
