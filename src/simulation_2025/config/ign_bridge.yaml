@@ -69,8 +69,13 @@
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
 
-- ros_topic_name: "/world/default/material_color"
-  gz_topic_name: "/world/default/material_color"
+- ros_topic_name: "ros_gz_interfaces/msg/MaterialColor"
+  gz_topic_name: "gz.msgs.MaterialColor"
   ros_type_name: "ros_gz_interfaces/msg/MaterialColor"
   gz_type_name: "gz.msgs.MaterialColor"
+
+- ros_topic_name: "camera/camera_info"
+  gz_topic_name: "camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
   
