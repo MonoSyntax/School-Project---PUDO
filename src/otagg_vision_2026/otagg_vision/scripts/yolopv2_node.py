@@ -73,8 +73,6 @@ class YOLOPv2LaneDetectionNode(Node):
         super().__init__('yolopv2_lane_detection_node')
 
         # --- Descriptors ---
-        # EXPANDED LIMITS: -2.0 to 2.0 allows points outside the image frame
-        # FINER STEP: 0.001 allows precise pixel-perfect tuning
         scale_desc = ParameterDescriptor(floating_point_range=[
             FloatingPointRange(from_value=-2.0, to_value=2.0, step=0.001)
         ])
