@@ -439,6 +439,3 @@ Eğer Rviz'de costmap haritası eksik ise ve araç hareket etmiyorsa; costmap do
 
 **Çözüm:**
 Simulasyonu yeniden başlatmak genellikle yeterli olacaktır. Gazebo'da "Play" butonuna basıldığından ve `use_sim_time: True` olduğundan emin olun.
-
-**Bakımcılar:** OTAGG Yazılım Ekibi
-**Lisans:** Apache 2.0
