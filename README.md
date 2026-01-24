@@ -1,7 +1,5 @@
 # OTAGG Otonom Araç Projesi - Kapsamlı Kurulum, Mimari ve Teknik Analiz
 
-Bu döküman, Teknofest 2025/2026 Robotaksi Binek Otonom Araç Yarışması için geliştirilen OTAGG otonom araç projesinin; kurulumunu, derinlemesine teknik mimarisini, kullanılan algoritmaların seçilme nedenlerini ve sistemin çalışma prensiplerini **en ince detayına kadar** açıklar.
-
 **Son Güncelleme:** 24 Ocak 2026
 
 ---
@@ -29,7 +27,7 @@ Bu döküman, Teknofest 2025/2026 Robotaksi Binek Otonom Araç Yarışması içi
 Otonom sürüş yazılımları, yüksek performanslı hesaplama ve gerçek zamanlı tepki süreleri gerektirir. Bu projenin donanım seçimlerinin teknik gerekçeleri şunlardır:
 
 * **İşletim Sistemi: Ubuntu 22.04 LTS (Jammy Jellyfish)**
-  * **Neden?** ROS 2 Humble sürümü, sadece Ubuntu 22.04 üzerinde "Tier 1" (Birinci Sınıf) destek sunar. Bu, binary paketlerin (apt ile kurulanlar) doğrudan bu işletim sistemi için derlendiği ve en kararlı çalıştığı anlamına gelir.
+  * **Neden?** ROS 2 Humble sürümü, sadece Ubuntu 22.04 üzerinde "Tier 1" destek sunar. Bu, binary paketlerin (apt ile kurulanlar) doğrudan bu işletim sistemi için derlendiği ve en kararlı çalıştığı anlamına gelir.
 
 * **GPU: NVIDIA GeForce RTX Serisi (Min. 6GB VRAM)**
   * **Neden NVIDIA?** Proje, nesne tespiti için YOLOv12 ve PyTorch kullanır. Bu kütüphaneler, matris çarpımı işlemlerini CPU yerine GPU üzerinde yapmak için NVIDIA'nın **CUDA (Compute Unified Device Architecture)** teknolojisini kullanır.
@@ -91,9 +89,9 @@ sudo apt update
 sudo apt install ros-humble-desktop -y
 ```
 
-    *   **`ros-humble-desktop`**: Sadece çekirdek (`ros-base`) değil, görselleştirme araçlarını (`rviz2`, `rqt`) içerir. Geliştirme ortamı için şarttır.
+* **`ros-humble-desktop`**: Sadece çekirdek (`ros-base`) değil, görselleştirme araçlarını (`rviz2`, `rqt`) içerir. Geliştirme ortamı için şarttır.
 
-3.  **Kritik Navigasyon Paketleri:**
+1. **Kritik Navigasyon Paketleri:**
 
   ```bash
     sudo apt install -y \
@@ -105,8 +103,8 @@ sudo apt install ros-humble-desktop -y
     ros-humble-tf-transformations
   ```
 
-    *   **`robot_localization`**: Tekerlek enkoderlerinden gelen hız verisi (Odometri) zamanla kayar (drift). Bu paket, IMU (İvmeölçer/Jiroskop) verisini kullanarak bu hatayı **Extended Kalman Filter (EKF)** ile düzeltir.
-    *   **`slam-toolbox`**: Haritalama için kullanılır. Gmapping'e göre daha modern, graf tabanlı bir SLAM algoritmasıdır ve büyük haritalarda daha az kaynak tüketir.
+* **`robot_localization`**: Tekerlek enkoderlerinden gelen hız verisi (Odometri) zamanla kayar (drift). Bu paket, IMU (İvmeölçer/Jiroskop) verisini kullanarak bu hatayı **Extended Kalman Filter (EKF)** ile düzeltir.
+* **`slam-toolbox`**: Haritalama için kullanılır. Gmapping'e göre daha modern, graf tabanlı bir SLAM algoritmasıdır ve büyük haritalarda daha az kaynak tüketir.
 
 ### Ortam Kurulumu
 
@@ -117,9 +115,7 @@ echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 
 ---
 
-## 4. Gazebo Harmonic: Yeni Nesil Simülasyon
-
-Eski Gazebo (Classic/11) yerine, modüler yapısı ve gelişmiş fizik motoru (DART) nedeniyle **Gazebo Harmonic** tercih edilmiştir.
+## 4. Gazebo Harmonic Kurulumu
 
 ```bash
 sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
@@ -132,10 +128,10 @@ sudo apt install gz-harmonic -y
 
 ## 5. ros_gz Köprüsü: İletişim Katmanı
 
-ROS 2 (DDS protokolü) ile Gazebo (Gazebo Transport) doğrudan konuşamaz. `ros_gz_bridge` paketi bu iki dünya arasında çevirmenlik yapar.
+ROS 2 ile Gazebo simulasyonu doğrudan haberleşemez. `ros_gz_bridge` paketi bu iki sistem arasındaki iletişimi sağlar.
 
 **Neden Kaynak Koddan Derliyoruz?**
-Ubuntu depolarındaki hazır `ros-humble-ros-gz` paketi genellikle eski Gazebo sürümleri (Fortress) içindir. Biz Harmonic kullandığımız için uyumsuzluk yaşanır.
+Ubuntu depolarındaki hazır `ros-humble-ros-gz` paketi genellikle eski Gazebo sürümleri (Fortress) içindir. Kaynaktan derlemek derlenen paketin sistemimizle uyumlu olmasını sağlar.
 
 ```bash
 # Workspace hazırlığı
@@ -167,7 +163,7 @@ pip3 install ultralytics opencv-python pillow 'numpy<2'
 ```
 
 > [!WARNING]
-> **NumPy Sürüm Uyarısı (`numpy<2`)**: ROS 2 Humble'ın `cv_bridge` kütüphanesi (ROS görüntülerini OpenCV formatına çeviren araç), C++ seviyesinde NumPy 1.x API'sine bağımlıdır. Eğer `numpy` 2.0 veya üzeri kurulursa, `yolov12_node.py` çalıştırıldığında **"AttributeError: _ARRAY_API not found"** hatası alır ve sistem çöker. Bu yüzden sürüm 2'den küçük olmaya zorlanmalıdır.
+> **NumPy Sürüm Uyarısı (`numpy<2`)**: ROS 2 Humble'ın `cv_bridge` kütüphanesi, NumPy 1.x API'sine bağımlıdır. Eğer `numpy` 2.0 veya üzeri kurulursa, `yolov12_node.py` çalıştırıldığında **"AttributeError: _ARRAY_API not found"** hatası alınır ve program çöker. Bu yüzden sürüm 2'den küçük olmaya zorlanmalıdır.
 
 ### CUDA 13.x
 
@@ -241,7 +237,7 @@ Robot dünyayı katmanlar halinde algılar:
 3. **Inflation Layer**: Engellerin etrafına "tehlike çemberi" çizer. `inflation_radius: 1.5m` olarak ayarlanmıştır.
 4. **Lane Guidance Layer (Özel Eklenti)**:
     * **Dosya**: `src/navigation_2025/src/lane_guidance_layer.cpp`
-    * **İşlevi**: Kamera şeritleri algıladığında, bu şeritleri sanal bir duvara dönüştürmek yerine "yüksek maliyetli alan" (`lane_cost: 100`) olarak işaretler.
+    * **İşlevi**: Kamera şeritleri algıladığında, bu şeritleri sanal bir duvara dönüştürmek yerine "yüksek maliyetli alan" (`lane_cost: 150`) olarak işaretler.
     * **Mantık**: Robot şeridin üstüne basabilir (çarpışma değildir) ama basmamayı tercih eder.
     * **Temporal Decay (Zamansal Sönümleme)**: Algılanan şerit verileri `max_point_age: 0.5s` saniye sonra haritadan silinir. Bu, eski/hatalı algılamaların haritada kalıcı "hayalet duvarlar" oluşturmasını engeller.
 
@@ -260,16 +256,49 @@ Robot dünyayı katmanlar halinde algılar:
 
 ### A. Nesne Tespiti: `yolov12_node.py`
 
-* Kameradan görüntü alır (`/camera/image_raw`).
-* YOLOv12 modelini kullanarak trafik işaretlerini tespit eder.
-* Sonuçları `/traffic_signs` topic'ine basar.
-* **Özelleştirme**: Standart modeller yerine `Training Folder/` içinde eğitilmiş, Teknofest tabelalarını tanıyan özel `.pt` ağırlıkları kullanılır.
+Bu node, otonom aracın "gözü" olarak görev yapar ve en güncel YOLOv12 mimarisini kullanır.
+
+* **Giriş**: `/camera_compressed` topic'inden sıkıştırılmış (compressed) görüntü akışını alır.
+
+* **Model**: `otagg_vision/models/` dizinindeki YOLOv12 modelini (`best.pt`) yükler. CUDA destekli GPU üzerinde çalışarak yüksek FPS değerlerine ulaşır.
+
+* **Özellikler**:
+
+  * **Mesafe Tahmini**: Tespit edilen nesnelerin bounding box yüksekliğine dayalı basit bir heuristic ile araca olan mesafesini (metre cinsinden) tahmin eder.
+
+  * **Sınıf Eşleştirme (Class Mapping)**: Türkçe eğitilmiş etiketleri (örn: `kirmizi_isik`, `dur`) sistemin anlayacağı İngilizce etiketlere (`red`, `stop_sign`) çevirir.
+
+  * **FPS Limitleme**: İşlem yükünü dengelemek için kare hızını (`fps_limit`) sınırlandırabilir.
+
+  * **Kritik Uyarılar**: Yaya, kırmızı ışık veya dur tabelası gibi kritik durumlarda `/traffic/alerts` üzerinden anlık uyarı metinleri yayınlar.
+
+* **Çıkışlar**:
+
+  * `/traffic_signs`: Tespit edilen nesnelerin sınıfı, konumu (bbox), güven skoru ve tahmini mesafesini içeren yapılandırılmış veri (`TrafficSignArray`).
+  * `/traffic/annotated/compressed`: Üzerine kutucuklar ve bilgiler çizilmiş görselleştirme görüntüsü.
+  * `/traffic/alerts`: Operatör için acil durum uyarı mesajları.
 
 ### B. Trafik Yöneticisi: `traffic_state_manager_node.py`
 
-* **Algoritma**: Ham algılamaları filtreler. Bir ışığın "Kırmızı" olduğuna karar vermek için `SignTracker` sınıfını kullanır.
-* **Temporal Filtering**: Tek bir karede "kırmızı" görmek yetmez; son 2 saniye içinde en az 3 karede (`min_detections: 3`) kırmızı görülmelidir. Bu, anlık sensör gürültülerini engeller.
-* **Çıktı**: `/traffic_state` mesajı yayınlar. Eğer kırmızı ışık veya dur tabelası kesinleşirse, `nav_override_state = 1` (DUR) komutu üretir.
+Bu node, YOLO'dan gelen ham algılamaları analiz eder ve kararlı bir "Trafik Durumu" oluşturur.
+
+* **Görevi**: Anlık ve hatalı algılamaları (noise) filtreleyerek, navigasyon sistemine güvenilir komutlar gönderir.
+
+* **Çalışma Mantığı**:
+
+  * **Algılama Toplama (Aggregation)**: `/traffic_signs` üzerinden gelen verileri sınıflandırır.
+
+  * **Durum Takibi (LightState)**: Trafik ışıklarının durumunu (Kırmızı, Sarı, Yeşil) bir sonlu durum makinesi (FSM) ile takip eder.
+
+  * **Zaman Filtrelemesi (SignTracker)**: Bir nesnenin varlığını doğrulamak için "Zaman Penceresi" (`time_window_sec: 2.0s`) kullanır. Örneğin, kırmızı ışığın geçerli sayılması için son 2 saniyede en az 3 kez (`min_detections`) görülmesi gerekir.
+
+* **Navigasyon Müdahalesi**:
+
+  * Eğer **Kırmızı Işık** (< 20m) veya **Dur Tabelası** (< 10m) kesinleşirse;
+
+  * `/traffic_state` mesajındaki `nav_override_state` değişkenini **1 (DUR)** olarak ayarlar.
+
+  * Bu sinyal, `velocity_override_node` tarafından okunur ve robot frenlenir.
 
 ---
 
