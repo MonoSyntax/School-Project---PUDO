@@ -2,7 +2,6 @@
 
 Bu döküman, Teknofest 2025/2026 Robotaksi Binek Otonom Araç Yarışması için geliştirilen OTAGG otonom araç projesinin; kurulumunu, derinlemesine teknik mimarisini, kullanılan algoritmaların seçilme nedenlerini ve sistemin çalışma prensiplerini **en ince detayına kadar** açıklar.
 
-**Döküman Sürümü:** 2.1 (Tüm Eksikler Giderildi)
 **Son Güncelleme:** 24 Ocak 2026
 
 ---
@@ -376,43 +375,6 @@ Eğer Rviz'de costmap haritası eksik ise ve araç hareket etmiyorsa; costmap do
 
 **Çözüm:**
 Simulasyonu yeniden başlatmak genellikle yeterli olacaktır. Gazebo'da "Play" butonuna basıldığından ve `use_sim_time: True` olduğundan emin olun.
-
----
-
-## 13. Proje Dosya Yapısı
-
-```
-ros2_ws/
-├── src/
-│   ├── navigation_2025/
-│   │   ├── config/
-│   │   │   ├── keepout_nav2_params.yaml   # Ana Nav2 parametreleri
-│   │   │   └── ekf.yaml                   # Sensör füzyon ayarları
-│   │   ├── launch/
-│   │   │   ├── bringup.launch.py          # Ana launch dosyası
-│   │   │   ├── localization.launch.py     # AMCL + Harita
-│   │   │   └── navigation.launch.py       # Nav2 Stack
-│   │   ├── maps/
-│   │   │   ├── teknofestObstacle.yaml     # Harita tanımı
-│   │   │   └── keepout_*.yaml             # Yasak alan tanımları
-│   │   └── Behavior_tree.xml              # Davranış ağacı
-│   │
-│   ├── otagg_vision_2026/
-│   │   ├── otagg_vision/
-│   │   │   ├── models/                    # YOLO modelleri
-│   │   │   └── scripts/                   # Python node'ları
-│   │   └── otagg_vision_interfaces/       # Özel mesajlar
-│   │
-│   └── simulation_2025/
-│       ├── launch/                        # Simülasyon launch'ları
-│       ├── models/                        # Gazebo modelleri
-│       ├── urdf/                          # Robot tanımları
-│       └── meshes/                        # 3D mesh dosyaları
-│
-├── build/                                 # Derleme çıktıları
-├── install/                               # Kurulum dosyaları
-└── log/                                   # Log dosyaları
-```
 
 **Bakımcılar:** OTAGG Yazılım Ekibi
 **Lisans:** Apache 2.0
