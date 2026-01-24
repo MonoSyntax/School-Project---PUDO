@@ -31,12 +31,11 @@ Otonom sürüş yazılımları, yüksek performanslı hesaplama ve gerçek zaman
 
 *   **İşletim Sistemi: Ubuntu 22.04 LTS (Jammy Jellyfish)**
     *   **Neden?** ROS 2 Humble sürümü, sadece Ubuntu 22.04 üzerinde "Tier 1" (Birinci Sınıf) destek sunar. Bu, binary paketlerin (apt ile kurulanlar) doğrudan bu işletim sistemi için derlendiği ve en kararlı çalıştığı anlamına gelir.
-    *   **Kernel:** Linux 5.15+ (Gerçek zamanlı yamalar opsiyoneldir ancak varsayılan kernel yeterlidir).
 
 *   **GPU: NVIDIA GeForce RTX Serisi (Min. 6GB VRAM)**
     *   **Neden NVIDIA?** Proje, nesne tespiti için YOLOv12 ve PyTorch kullanır. Bu kütüphaneler, matris çarpımı işlemlerini CPU yerine GPU üzerinde yapmak için NVIDIA'nın **CUDA (Compute Unified Device Architecture)** teknolojisini kullanır.
     *   **Performans Farkı:** CPU üzerinde YOLOv12 modeli 1-5 FPS verirken, CUDA destekli bir RTX 3060 üzerinde 40-60+ FPS verir. Otonom bir aracın 60km/s hızla giderken saniyede 1 kare işlemesi kaza kaçınılmaz demektir.
-    *   **AMD Durumu:** AMD kartlar (ROCm) teorik olarak desteklense de, kurulum zorluğu ve sürücü uyumsuzlukları nedeniyle yarışma ortamında önerilmez.
+    *   **AMD Durumu:** AMD kartlar (ROCm) teorik olarak desteklense de, kurulum zorluğu ve sürücü uyumsuzlukları nedeniyle önerilmez.
 
 *   **RAM: Minimum 16GB, Önerilen 32GB**
     *   **Neden?** Gazebo simülasyonu (yaklaşık 4-6GB), Rviz2 (1-2GB), Nav2 Costmap'leri (1-2GB) ve yüklenen YOLO modelleri (2-4GB VRAM taşması durumunda RAM'e geçer) aynı anda çalıştığında bellek kullanımı hızla 16GB sınırına dayanır.
@@ -75,7 +74,7 @@ export LANG=en_US.UTF-8
 ### ROS 2 Paketleri ve Nedenleri
 
 1.  **Repo Ekleme:**
-    ```bash
+```bash
 sudo add-apt-repository universe
 sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
