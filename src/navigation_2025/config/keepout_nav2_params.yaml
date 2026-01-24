@@ -187,14 +187,14 @@ local_costmap:
 
       # robot_radius: 0.23  # Robot yarıçapı - kullanılmıyor, footprint kullanılıyor
       footprint: "[[-1.4, -0.8], [1.4, -0.8], [1.4, 0.8], [-1.4, 0.8]]"  # araç boyutu: 2.8x1.6m
-      footprint_padding: 0.1  # Padding
+      footprint_padding: 0.05  # Padding reduced
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       filters: ["keepout_filter", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True
-        inflation_radius: 1.5  # daha küçük mavi alan
-        cost_scaling_factor: 3.0  # Maliyet ölçekleme
+        inflation_radius: 1.0  # daha küçük mavi alan
+        cost_scaling_factor: 5.0  # Maliyet ölçekleme
       obstacle_layer:  # Engel katmanı - sensörlerden gelen engel verileri
         plugin: "nav2_costmap_2d::ObstacleLayer"  # Engel katmanı eklentisi
         enabled: True  # Etkin - bu katmanı kullan
@@ -241,14 +241,14 @@ global_costmap:
 
       #robot_radius: 0.23  # Robot yarıçapı - kullanılmıyor, footprint kullanılıyor
       footprint: "[[-1.4, -0.8], [1.4, -0.8], [1.4, 0.8], [-1.4, 0.8]]"  # Doğru araç boyutu: 2.8x1.6m
-      footprint_padding: 0.1  # Padding
+      footprint_padding: 0.05  # Padding reduced to avoid false collisions
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]  # Kullanılacak katmanlar
       filters: ["keepout_filter", "inflation_layer"]  # Kullanılacak filtreler
       inflation_layer:  # Şişirme katmanı - engeller etrafında güvenlik alanı
         plugin: "nav2_costmap_2d::InflationLayer"  # Şişirme katmanı eklentisi
         enabled: True  # Etkin - bu katmanı kullan
-        inflation_radius: 1.5  # Azaltıldı - daha küçük mavi alan
-        cost_scaling_factor: 3.0  # Maliyet ölçekleme
+        inflation_radius: 1.0  # Azaltıldı - daha küçük mavi alan to prevent blocking narrow turns
+        cost_scaling_factor: 5.0  # Increased decay to clear space faster
       obstacle_layer:  # Engel katmanı - sensörlerden gelen engel verileri
         plugin: "nav2_costmap_2d::ObstacleLayer"  # Engel katmanı eklentisi
         enabled: True  # Etkin - bu katmanı kullan
