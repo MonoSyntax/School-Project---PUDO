@@ -13,6 +13,9 @@ from rcl_interfaces.msg import SetParametersResult, ParameterDescriptor, Floatin
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from ament_index_python.packages import get_package_share_directory
+from sensor_msgs.msg import PointCloud2, PointField
+from sensor_msgs_py import point_cloud2
+from std_msgs.msg import Header
 
 import cv2
 import torch
@@ -86,6 +89,9 @@ class YOLOPv2LaneDetectionNode(Node):
         self.declare_parameter('show_visualization', True)
         self.declare_parameter('output_width', 672)
         self.declare_parameter('output_height', 376)
+        self.declare_parameter('bev_range_meters', 15.0)
+        self.declare_parameter('bev_width_meters', 5.5)
+        self.declare_parameter('pc_downsample', 4)
 
         # Dynamic Parameters (Manual BEV Control)
         # Defaults set to your known "good" starting point
@@ -102,6 +108,9 @@ class YOLOPv2LaneDetectionNode(Node):
 
         self.out_width = self.get_parameter('output_width').value
         self.out_height = self.get_parameter('output_height').value
+        self.bev_range_m = self.get_parameter('bev_range_meters').value
+        self.bev_width_m = self.get_parameter('bev_width_meters').value
+        self.pc_downsample = self.get_parameter('pc_downsample').value
         self.show_viz = self.get_parameter('show_visualization').value
         
         # ROS Interfaces
@@ -109,6 +118,7 @@ class YOLOPv2LaneDetectionNode(Node):
         self.image_sub = self.create_subscription(Image, self.get_parameter('camera_topic').value, self.image_callback, 10)
         self.image_pub = self.create_publisher(Image, self.get_parameter('output_image_topic').value, 10)
         self.bev_pub = self.create_publisher(Image, self.get_parameter('output_bev_topic').value, 10)
+        self.pc_pub = self.create_publisher(PointCloud2, '/lane_detection/pointcloud', 10)
 
         # Initialize Matrix
         self.init_bev_matrix()
@@ -273,7 +283,62 @@ class YOLOPv2LaneDetectionNode(Node):
             bev_msg = self.bridge.cv2_to_imgmsg(bev_frame, encoding='bgr8')
             bev_msg.header = msg.header
             self.bev_pub.publish(bev_msg)
-        except Exception:
+
+            # --- PointCloud Generation ---
+            # Warp the lane mask to BEV
+            # foreground is boolean (H, W).
+            if foreground.shape[:2] != (self.out_height, self.out_width):
+                 fg_resized = cv2.resize(foreground.astype(np.uint8), (self.out_width, self.out_height), interpolation=cv2.INTER_NEAREST)
+            else:
+                 fg_resized = foreground.astype(np.uint8)
+
+            bev_mask = cv2.warpPerspective(fg_resized, self.bev_matrix, (self.out_width, self.out_height))
+            
+            # Efficient Downsampling using Resize
+            # Instead of slicing [::ds], we resize the mask to a smaller resolution.
+            # This averages pixel values, so we can threshold to keep strong lane evidence.
+            # Target resolution for PointCloud
+            ds = self.pc_downsample
+            if ds > 1:
+                target_w = max(1, self.out_width // ds)
+                target_h = max(1, self.out_height // ds)
+                bev_mask_small = cv2.resize(bev_mask, (target_w, target_h), interpolation=cv2.INTER_AREA)
+                # Threshold to keep significant pixels
+                bev_mask_small = (bev_mask_small > 0).astype(np.uint8)
+                h_map, w_map = target_h, target_w
+            else:
+                bev_mask_small = bev_mask
+                h_map, w_map = self.out_height, self.out_width
+
+            ys, xs = np.nonzero(bev_mask_small)
+            
+            if len(ys) > 0:
+                # Normalized coordinates (0 to 1) relative to the grid used
+                # +0.5 to center the point in the grid cell
+                v_norm = (ys + 0.5) / h_map 
+                u_norm = (xs + 0.5) / w_map
+                
+                # Robot X: Linear mapping from max_range to 0
+                points_x = (1.0 - v_norm) * self.bev_range_m
+                
+                # Robot Y: Linear mapping
+                points_y = (0.5 - u_norm) * self.bev_width_m
+                
+                points_z = np.zeros_like(points_x)
+                
+                # Stack
+                points = np.stack([points_x, points_y, points_z], axis=1).astype(np.float32)
+                
+                # Create PointCloud2
+                header = Header()
+                header.stamp = msg.header.stamp
+                header.frame_id = "base_footprint" 
+                
+                pc_msg = point_cloud2.create_cloud_xyz32(header, points)
+                self.pc_pub.publish(pc_msg)
+
+        except Exception as e:
+            self.get_logger().warn(f"PC Generation error: {e}")
             pass
 
         if self.show_viz:

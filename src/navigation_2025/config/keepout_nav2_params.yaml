@@ -174,13 +174,13 @@ local_costmap:
     ros__parameters:
       use_sim_time: True  # Simülasyon zamanı kullan
 
-      update_frequency: 3.0  # yerel maliyet haritası güncelleme frekansı
-      publish_frequency: 3.0  # yerel maliyet haritası yayın frekansı
+      update_frequency: 10.0  # yerel maliyet haritası güncelleme frekansı
+      publish_frequency: 10.0  # yerel maliyet haritası yayın frekansı
       global_frame: odom  # odometri koordinat sistemi
       robot_base_frame: base_footprint  # robotun referans noktası
 
-      width: 80  # local costmap daha geniş
-      height: 80  # local costmap daha yüksek
+      width: 200  # local costmap daha geniş (10m)
+      height: 200  # local costmap daha yüksek (10m)
       resolution: 0.05  # her hücrenin metre cinsinden boyutu
       rolling_window: True  # robot hareket ettikçe harita kaydırılır
       always_send_full_costmap: True  # Her zaman tam maliyet haritasını gönder
@@ -193,22 +193,30 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True
-        inflation_radius: 1.5  # Slightly larger to ensure gradient
+        inflation_radius: 0.8  # Reduced for tighter navigation
         cost_scaling_factor: 10.0  # Sharper decay
       obstacle_layer:  # Engel katmanı - sensörlerden gelen engel verileri
         plugin: "nav2_costmap_2d::ObstacleLayer"  # Engel katmanı eklentisi
         enabled: True  # Etkin - bu katmanı kullan
-        observation_sources: scan  # Gözlem kaynakları - hangi sensörler kullanılacak
+        observation_sources: scan lane_cloud  # Gözlem kaynakları - hangi sensörler kullanılacak
         scan:  # Lazer tarama ayarları
           topic: /scan  # Lazer tarama topic'i - lazer verilerinin geldiği kanal
           max_obstacle_height: 2.0  # Maksimum engel yüksekliği - bu yüksekliğin üstü engel sayılmaz
           clearing: True  # Temizleme etkin - engeller kaybolunca haritadan kaldır
           marking: True  # İşaretleme etkin - yeni engelleri haritaya ekle
           data_type: "LaserScan"  # Veri tipi - lazer tarama verisi
-          raytrace_max_range: 2.5  # Performans için azaltıldı - ışın izleme maksimum menzili
+          raytrace_max_range: 12.0  # Performans için azaltıldı - ışın izleme maksimum menzili
           raytrace_min_range: 0.0  # Işın izleme minimum menzili - en yakın algılama mesafesi
-          obstacle_max_range: 2.0  # Performans için azaltıldı - engel algılama maksimum menzili
+          obstacle_max_range: 10.0  # Engel algılama maksimum menzili
           obstacle_min_range: 0.0  # Engel algılama minimum menzili - en yakın engel mesafesi
+        lane_cloud:
+          topic: /lane_detection/pointcloud
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "PointCloud2"
+          min_obstacle_height: -1.0
+          max_obstacle_height: 1.0
       static_layer:  # Statik katman - önceden bilinen harita
         plugin: "nav2_costmap_2d::StaticLayer"  # Statik katman eklentisi
         enabled: True  # Etkin - bu katmanı kullan
@@ -252,7 +260,7 @@ global_costmap:
       obstacle_layer:  # Engel katmanı - sensörlerden gelen engel verileri
         plugin: "nav2_costmap_2d::ObstacleLayer"  # Engel katmanı eklentisi
         enabled: True  # Etkin - bu katmanı kullan
-        observation_sources: scan  # Gözlem kaynakları - hangi sensörler kullanılacak
+        observation_sources: scan lane_cloud  # Gözlem kaynakları - hangi sensörler kullanılacak
         scan:  # Lazer tarama ayarları
           topic: /scan  # Lazer tarama topic'i - lazer verilerinin geldiği kanal
           max_obstacle_height: 2.0  # Maksimum engel yüksekliği - bu yüksekliğin üstü engel sayılmaz
@@ -263,6 +271,14 @@ global_costmap:
           raytrace_min_range: 0.0  # Işın izleme minimum menzili - en yakın temizleme mesafesi
           obstacle_max_range: 2.5  # Engel algılama maksimum menzili - engel işaretleme için maksimum mesafe
           obstacle_min_range: 0.0  # Engel algılama minimum menzili - en yakın engel mesafesi
+        lane_cloud:
+          topic: /lane_detection/pointcloud
+          max_obstacle_height: 2.0
+          clearing: False
+          marking: True
+          data_type: "PointCloud2"
+          min_obstacle_height: -1.0
+          max_obstacle_height: 1.0
       static_layer:  # Statik katman - önceden bilinen harita
         plugin: "nav2_costmap_2d::StaticLayer"  # Statik katman eklentisi
         enabled: True  # Etkin - bu katmanı kullan
