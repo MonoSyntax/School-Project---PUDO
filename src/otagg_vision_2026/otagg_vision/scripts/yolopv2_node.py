@@ -284,9 +284,7 @@ class YOLOPv2LaneDetectionNode(Node):
             bev_msg.header = msg.header
             self.bev_pub.publish(bev_msg)
 
-            # --- PointCloud Generation ---
-            # Warp the lane mask to BEV
-            # foreground is boolean (H, W).
+            # --- PointCloud Generation (Optimized with Contours) ---
             if foreground.shape[:2] != (self.out_height, self.out_width):
                  fg_resized = cv2.resize(foreground.astype(np.uint8), (self.out_width, self.out_height), interpolation=cv2.INTER_NEAREST)
             else:
@@ -294,46 +292,42 @@ class YOLOPv2LaneDetectionNode(Node):
 
             bev_mask = cv2.warpPerspective(fg_resized, self.bev_matrix, (self.out_width, self.out_height))
             
-            # Efficient Downsampling using Resize
-            # Instead of slicing [::ds], we resize the mask to a smaller resolution.
-            # This averages pixel values, so we can threshold to keep strong lane evidence.
-            # Target resolution for PointCloud
-            ds = self.pc_downsample
-            if ds > 1:
-                target_w = max(1, self.out_width // ds)
-                target_h = max(1, self.out_height // ds)
-                bev_mask_small = cv2.resize(bev_mask, (target_w, target_h), interpolation=cv2.INTER_AREA)
-                # Threshold to keep significant pixels
-                bev_mask_small = (bev_mask_small > 0).astype(np.uint8)
-                h_map, w_map = target_h, target_w
-            else:
-                bev_mask_small = bev_mask
-                h_map, w_map = self.out_height, self.out_width
-
-            ys, xs = np.nonzero(bev_mask_small)
+            # Find contours on the binary BEV mask
+            contours, _ = cv2.findContours(bev_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             
-            if len(ys) > 0:
-                # Normalized coordinates (0 to 1) relative to the grid used
-                # +0.5 to center the point in the grid cell
-                v_norm = (ys + 0.5) / h_map 
-                u_norm = (xs + 0.5) / w_map
+            points_x = []
+            points_y = []
+            points_z = []
+            
+            for cnt in contours:
+                if cv2.contourArea(cnt) < 50: continue
+                    
+                # Simplify
+                epsilon = 0.005 * cv2.arcLength(cnt, True)
+                approx = cv2.approxPolyDP(cnt, epsilon, True)
                 
-                # Robot X: Linear mapping from max_range to 0
-                points_x = (1.0 - v_norm) * self.bev_range_m
-                
-                # Robot Y: Linear mapping
-                points_y = (0.5 - u_norm) * self.bev_width_m
-                
-                points_z = np.zeros_like(points_x)
-                
-                # Stack
+                # Use vertices of the simplified polygon
+                for point in approx:
+                    u = point[0][0]
+                    v = point[0][1]
+                    
+                    # Normalize
+                    u_norm = (u + 0.5) / self.out_width
+                    v_norm = (v + 0.5) / self.out_height
+                    
+                    # Robot Frame Transform
+                    px = (1.0 - v_norm) * self.bev_range_m
+                    py = (0.5 - u_norm) * self.bev_width_m
+                    
+                    points_x.append(px)
+                    points_y.append(py)
+                    points_z.append(0.0)
+
+            if len(points_x) > 0:
                 points = np.stack([points_x, points_y, points_z], axis=1).astype(np.float32)
-                
-                # Create PointCloud2
                 header = Header()
                 header.stamp = msg.header.stamp
                 header.frame_id = "base_footprint" 
-                
                 pc_msg = point_cloud2.create_cloud_xyz32(header, points)
                 self.pc_pub.publish(pc_msg)
 

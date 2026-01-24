@@ -277,12 +277,12 @@ global_costmap:
         plugin: "navigation_2025::LaneGuidanceLayer"  # Özel şerit rehberlik katmanı eklentisi
         enabled: True  # Etkin - bu katmanı kullan
         pointcloud_topic: "/lane_detection/pointcloud"  # Şerit algılama nokta bulutu topic'i
-        lane_cost: 100  # Şerit maliyeti (0-254, 100=orta) - şeritleri tercih et ama geçmeyi de izin ver
-        min_height: -1.0  # Minimum nokta yüksekliği - zemin seviyesinin altı
-        max_height: 1.0  # Maksimum nokta yüksekliği - zemin seviyesi üstü
-        max_point_age: 2.0  # Noktaların maksimum yaşı (saniye) - eski noktalar silinir
-        transform_tolerance: 0.3  # Transform toleransı - koordinat dönüşümü için tolerans
-        use_temporal_decay: True  # Zamansal bozulma etkin - eski noktalar otomatik silinir
+        lane_cost: 200  # Increased cost for stronger avoidance
+        min_height: -1.0
+        max_height: 1.0
+        max_point_age: 0.5  # Reduced from 2.0s to 0.5s for real-time responsiveness
+        transform_tolerance: 0.3
+        use_temporal_decay: True
       static_layer:  # Statik katman - önceden bilinen harita
         plugin: "nav2_costmap_2d::StaticLayer"  # Statik katman eklentisi
         enabled: True  # Etkin - bu katmanı kullan
