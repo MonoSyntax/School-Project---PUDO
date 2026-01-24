@@ -1,5 +1,7 @@
 <library path="lane_guidance_layer_plugin">
-  <class type="navigation_2025::LaneGuidanceLayer" base_class_type="nav2_costmap_2d::Layer">
+  <class name="navigation_2025::LaneGuidanceLayer" 
+         type="navigation_2025::LaneGuidanceLayer" 
+         base_class_type="nav2_costmap_2d::Layer">
     <description>
       Lane Guidance Costmap Layer - Provides soft guidance based on lane detection.
       Marks detected lane boundaries with configurable medium costs to encourage

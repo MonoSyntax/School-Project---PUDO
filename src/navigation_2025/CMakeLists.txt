@@ -84,6 +84,10 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
+# Export plugin descriptions for pluginlib
+pluginlib_export_plugin_description_file(nav2_behavior_tree bt_custom_nodes_plugin.xml)
+pluginlib_export_plugin_description_file(nav2_costmap_2d lane_guidance_layer_plugin.xml)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()

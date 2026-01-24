@@ -89,7 +89,7 @@ class YOLOPv2LaneDetectionNode(Node):
         self.declare_parameter('show_visualization', True)
         self.declare_parameter('output_width', 672)
         self.declare_parameter('output_height', 376)
-        self.declare_parameter('bev_range_meters', 15.0)
+        self.declare_parameter('bev_range_meters', 10.0)
         self.declare_parameter('bev_width_meters', 5.5)
         self.declare_parameter('pc_downsample', 4)
 

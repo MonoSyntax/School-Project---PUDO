@@ -13,39 +13,32 @@
 #include "nav2_costmap_2d/costmap_math.hpp"
 #include "pluginlib/class_list_macros.hpp"
 
-PLUGINLIB_EXPORT_CLASS(navigation_2025::LaneGuidanceLayer, nav2_costmap_2d::Layer)
+PLUGINLIB_EXPORT_CLASS(navigation_2025::LaneGuidanceLayer,
+                       nav2_costmap_2d::Layer)
 
-namespace navigation_2025
-{
+namespace navigation_2025 {
 
 LaneGuidanceLayer::LaneGuidanceLayer()
-: last_min_x_(0.0),
-  last_min_y_(0.0),
-  last_max_x_(0.0),
-  last_max_y_(0.0),
-  bounds_initialized_(false),
-  points_received_count_(0),
-  points_applied_count_(0)
-{
-}
+    : last_min_x_(0.0), last_min_y_(0.0), last_max_x_(0.0), last_max_y_(0.0),
+      bounds_initialized_(false), points_received_count_(0),
+      points_applied_count_(0) {}
 
-LaneGuidanceLayer::~LaneGuidanceLayer()
-{
+LaneGuidanceLayer::~LaneGuidanceLayer() {
   if (cloud_sub_) {
     cloud_sub_.reset();
   }
 }
 
-void LaneGuidanceLayer::onInitialize()
-{
-  node_ = node_.lock();
-  if (!node_) {
-    throw std::runtime_error("Failed to lock node in LaneGuidanceLayer");
+void LaneGuidanceLayer::onInitialize() {
+  auto node = node_.lock();
+  if (!node) {
+    throw std::runtime_error("Failed to get node in LaneGuidanceLayer");
   }
 
   // Declare and get parameters with defaults
   declareParameter("enabled", rclcpp::ParameterValue(true));
-  declareParameter("pointcloud_topic", rclcpp::ParameterValue("/lane_detection/pointcloud"));
+  declareParameter("pointcloud_topic",
+                   rclcpp::ParameterValue("/lane_detection/pointcloud"));
   declareParameter("lane_cost", rclcpp::ParameterValue(100));
   declareParameter("min_height", rclcpp::ParameterValue(-1.0));
   declareParameter("max_height", rclcpp::ParameterValue(1.0));
@@ -53,65 +46,70 @@ void LaneGuidanceLayer::onInitialize()
   declareParameter("transform_tolerance", rclcpp::ParameterValue(0.3));
   declareParameter("use_temporal_decay", rclcpp::ParameterValue(true));
 
-  node_->get_parameter(name_ + "." + "enabled", enabled_);
-  node_->get_parameter(name_ + "." + "pointcloud_topic", pointcloud_topic_);
+  node->get_parameter(name_ + "." + "enabled", enabled_);
+  node->get_parameter(name_ + "." + "pointcloud_topic", pointcloud_topic_);
 
   int lane_cost_int;
-  node_->get_parameter(name_ + "." + "lane_cost", lane_cost_int);
+  node->get_parameter(name_ + "." + "lane_cost", lane_cost_int);
   lane_cost_ = static_cast<unsigned char>(std::clamp(lane_cost_int, 0, 254));
 
-  node_->get_parameter(name_ + "." + "min_height", min_height_);
-  node_->get_parameter(name_ + "." + "max_height", max_height_);
-  node_->get_parameter(name_ + "." + "max_point_age", max_point_age_);
-  node_->get_parameter(name_ + "." + "transform_tolerance", transform_tolerance_);
-  node_->get_parameter(name_ + "." + "use_temporal_decay", use_temporal_decay_);
+  node->get_parameter(name_ + "." + "min_height", min_height_);
+  node->get_parameter(name_ + "." + "max_height", max_height_);
+  node->get_parameter(name_ + "." + "max_point_age", max_point_age_);
+  node->get_parameter(name_ + "." + "transform_tolerance",
+                      transform_tolerance_);
+  node->get_parameter(name_ + "." + "use_temporal_decay", use_temporal_decay_);
 
   // Initialize TF2 buffer and listener
-  tf_buffer_ = std::make_shared<tf2_ros::Buffer>(node_->get_clock());
+  tf_buffer_ = std::make_shared<tf2_ros::Buffer>(node->get_clock());
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
   // Create subscription to lane detection point cloud
-  cloud_sub_ = node_->create_subscription<sensor_msgs::msg::PointCloud2>(
-    pointcloud_topic_,
-    rclcpp::SensorDataQoS(),
-    std::bind(&LaneGuidanceLayer::pointCloudCallback, this, std::placeholders::_1)
-  );
+  cloud_sub_ = node->create_subscription<sensor_msgs::msg::PointCloud2>(
+      pointcloud_topic_, rclcpp::SensorDataQoS(),
+      std::bind(&LaneGuidanceLayer::pointCloudCallback, this,
+                std::placeholders::_1));
 
-  current_ = true;  // Mark layer as current
+  current_ = true; // Mark layer as current
 
-  RCLCPP_INFO(
-    node_->get_logger(),
-    "LaneGuidanceLayer initialized: topic='%s', cost=%d, height_range=[%.2f, %.2f]",
-    pointcloud_topic_.c_str(), lane_cost_, min_height_, max_height_
-  );
+  RCLCPP_INFO(node->get_logger(),
+              "LaneGuidanceLayer initialized: topic='%s', cost=%d, "
+              "height_range=[%.2f, %.2f]",
+              pointcloud_topic_.c_str(), lane_cost_, min_height_, max_height_);
 }
 
-void LaneGuidanceLayer::activate()
-{
-  RCLCPP_INFO(node_->get_logger(), "Activating LaneGuidanceLayer");
+void LaneGuidanceLayer::activate() {
+  auto node = node_.lock();
+  if (node) {
+    RCLCPP_INFO(node->get_logger(), "Activating LaneGuidanceLayer");
+  }
   enabled_ = true;
 }
 
-void LaneGuidanceLayer::deactivate()
-{
-  RCLCPP_INFO(node_->get_logger(), "Deactivating LaneGuidanceLayer");
+void LaneGuidanceLayer::deactivate() {
+  auto node = node_.lock();
+  if (node) {
+    RCLCPP_INFO(node->get_logger(), "Deactivating LaneGuidanceLayer");
+  }
   enabled_ = false;
   std::lock_guard<std::mutex> lock(points_mutex_);
   lane_points_.clear();
 }
 
-void LaneGuidanceLayer::reset()
-{
-  RCLCPP_INFO(node_->get_logger(), "Resetting LaneGuidanceLayer");
+void LaneGuidanceLayer::reset() {
+  auto node = node_.lock();
+  if (node) {
+    RCLCPP_INFO(node->get_logger(), "Resetting LaneGuidanceLayer");
+  }
   std::lock_guard<std::mutex> lock(points_mutex_);
   lane_points_.clear();
   bounds_initialized_ = false;
-  resetMaps();
+  points_received_count_ = 0;
+  points_applied_count_ = 0;
 }
 
 void LaneGuidanceLayer::pointCloudCallback(
-  const sensor_msgs::msg::PointCloud2::SharedPtr cloud)
-{
+    const sensor_msgs::msg::PointCloud2::SharedPtr cloud) {
   if (!enabled_) {
     return;
   }
@@ -121,33 +119,30 @@ void LaneGuidanceLayer::pointCloudCallback(
 }
 
 void LaneGuidanceLayer::processPointCloud(
-  const sensor_msgs::msg::PointCloud2::SharedPtr cloud)
-{
+    const sensor_msgs::msg::PointCloud2::SharedPtr cloud) {
   // Transform point cloud to global frame
   sensor_msgs::msg::PointCloud2 transformed_cloud;
 
   try {
     // Get the transform from cloud frame to global frame
-    geometry_msgs::msg::TransformStamped transform = tf_buffer_->lookupTransform(
-      layered_costmap_->getGlobalFrameID(),
-      cloud->header.frame_id,
-      cloud->header.stamp,
-      tf2::durationFromSec(transform_tolerance_)
-    );
+    geometry_msgs::msg::TransformStamped transform =
+        tf_buffer_->lookupTransform(layered_costmap_->getGlobalFrameID(),
+                                    cloud->header.frame_id, cloud->header.stamp,
+                                    tf2::durationFromSec(transform_tolerance_));
 
     // Transform the point cloud
     tf2::doTransform(*cloud, transformed_cloud, transform);
 
-  } catch (tf2::TransformException & ex) {
-    RCLCPP_WARN_THROTTLE(
-      node_->get_logger(),
-      *node_->get_clock(),
-      5000,  // 5 seconds throttle
-      "Could not transform point cloud from %s to %s: %s",
-      cloud->header.frame_id.c_str(),
-      layered_costmap_->getGlobalFrameID().c_str(),
-      ex.what()
-    );
+  } catch (tf2::TransformException &ex) {
+    auto node = node_.lock();
+    if (node) {
+      RCLCPP_WARN_THROTTLE(node->get_logger(), *node->get_clock(),
+                           5000, // 5 seconds throttle
+                           "Could not transform point cloud from %s to %s: %s",
+                           cloud->header.frame_id.c_str(),
+                           layered_costmap_->getGlobalFrameID().c_str(),
+                           ex.what());
+    }
     return;
   }
 
@@ -159,7 +154,11 @@ void LaneGuidanceLayer::processPointCloud(
   sensor_msgs::PointCloud2ConstIterator<float> iter_y(transformed_cloud, "y");
   sensor_msgs::PointCloud2ConstIterator<float> iter_z(transformed_cloud, "z");
 
-  rclcpp::Time current_time = node_->now();
+  auto node = node_.lock();
+  if (!node) {
+    return;
+  }
+  rclcpp::Time current_time = node->now();
   size_t points_added = 0;
 
   for (; iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
@@ -193,35 +192,38 @@ void LaneGuidanceLayer::processPointCloud(
   }
 
   if (points_added > 0) {
-    RCLCPP_DEBUG(
-      node_->get_logger(),
-      "Processed %zu lane points, total stored: %zu",
-      points_added, lane_points_.size()
-    );
-  }
-}
-
-void LaneGuidanceLayer::decayLanePoints()
-{
-  // Remove points older than max_point_age_
-  rclcpp::Time current_time = node_->now();
-  rclcpp::Duration max_age = rclcpp::Duration::from_seconds(max_point_age_);
-
-  auto it = lane_points_.begin();
-  while (it != lane_points_.end()) {
-    if ((current_time - it->timestamp) > max_age) {
-      it = lane_points_.erase(it);
-    } else {
-      ++it;
+    auto node = node_.lock();
+    if (node) {
+      RCLCPP_DEBUG(node->get_logger(),
+                   "Processed %zu lane points, total stored: %zu", points_added,
+                   lane_points_.size());
     }
   }
 }
 
-void LaneGuidanceLayer::updateBounds(
-  double robot_x, double robot_y, double /*robot_yaw*/,
-  double * min_x, double * min_y,
-  double * max_x, double * max_y)
-{
+void LaneGuidanceLayer::decayLanePoints() {
+  auto node = node_.lock();
+  if (!node) {
+    return;
+  }
+  // Remove points older than max_point_age_
+  rclcpp::Time current_time = node->now();
+  rclcpp::Duration max_age = rclcpp::Duration::from_seconds(max_point_age_);
+
+  // Since points are added in order, we only need to check from the front
+  while (!lane_points_.empty()) {
+    if ((current_time - lane_points_.front().timestamp) > max_age) {
+      lane_points_.pop_front();
+    } else {
+      break; // Oldest point is young enough, so are all others
+    }
+  }
+}
+
+void LaneGuidanceLayer::updateBounds(double robot_x, double robot_y,
+                                     double /*robot_yaw*/, double *min_x,
+                                     double *min_y, double *max_x,
+                                     double *max_y) {
   if (!enabled_) {
     return;
   }
@@ -249,7 +251,7 @@ void LaneGuidanceLayer::updateBounds(
 
   bool found_valid_point = false;
 
-  for (const auto & point : lane_points_) {
+  for (const auto &point : lane_points_) {
     local_min_x = std::min(local_min_x, point.x);
     local_min_y = std::min(local_min_y, point.y);
     local_max_x = std::max(local_max_x, point.x);
@@ -259,7 +261,7 @@ void LaneGuidanceLayer::updateBounds(
 
   if (found_valid_point) {
     // Add small buffer to bounds
-    const double buffer = 0.5;  // 0.5 meter buffer
+    const double buffer = 0.5; // 0.5 meter buffer
     local_min_x -= buffer;
     local_min_y -= buffer;
     local_max_x += buffer;
@@ -279,11 +281,9 @@ void LaneGuidanceLayer::updateBounds(
   }
 }
 
-void LaneGuidanceLayer::updateCosts(
-  nav2_costmap_2d::Costmap2D & master_grid,
-  int min_i, int min_j,
-  int max_i, int max_j)
-{
+void LaneGuidanceLayer::updateCosts(nav2_costmap_2d::Costmap2D &master_grid,
+                                    int min_i, int min_j, int max_i,
+                                    int max_j) {
   if (!enabled_) {
     return;
   }
@@ -294,25 +294,24 @@ void LaneGuidanceLayer::updateCosts(
     return;
   }
 
-  last_update_time_ = node_->now();
+  auto node = node_.lock();
+  if (!node) {
+    return;
+  }
+  last_update_time_ = node->now();
   points_applied_count_ = 0;
 
-  // Get costmap properties
-  unsigned int size_x = master_grid.getSizeInCellsX();
-  unsigned int size_y = master_grid.getSizeInCellsY();
-
   // Iterate through all stored lane points
-  for (const auto & point : lane_points_) {
+  for (const auto &point : lane_points_) {
     // Convert world coordinates to costmap coordinates
     unsigned int mx, my;
     if (!master_grid.worldToMap(point.x, point.y, mx, my)) {
-      continue;  // Point is outside costmap bounds
+      continue; // Point is outside costmap bounds
     }
 
     // Check if within update bounds
     if (static_cast<int>(mx) < min_i || static_cast<int>(mx) >= max_i ||
-        static_cast<int>(my) < min_j || static_cast<int>(my) >= max_j)
-    {
+        static_cast<int>(my) < min_j || static_cast<int>(my) >= max_j) {
       continue;
     }
 
@@ -329,11 +328,9 @@ void LaneGuidanceLayer::updateCosts(
     }
   }
 
-  RCLCPP_DEBUG(
-    node_->get_logger(),
-    "Updated costmap with %zu lane points (applied: %zu)",
-    lane_points_.size(), points_applied_count_
-  );
+  RCLCPP_INFO_THROTTLE(node->get_logger(), *node->get_clock(), 500,
+                       "Updated costmap with %zu lane points (applied: %zu)",
+                       lane_points_.size(), points_applied_count_);
 }
 
-}  // namespace navigation_2025
+} // namespace navigation_2025
